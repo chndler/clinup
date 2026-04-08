@@ -86,7 +86,7 @@
 
   .output-box {
     min-height: 64px;
-    cursor: text;
+    cursor: default;
     overflow: auto;
     padding: 0.75rem 0;
     position: relative;
@@ -166,6 +166,8 @@
     margin-top: 0.35rem;
   }
 
+  .option-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+
   @media (max-width: 540px) {
     .options { grid-template-columns: 1fr; }
   }
@@ -219,6 +221,12 @@
   .option-example .arrow {
     color: var(--success);
     flex-shrink: 0;
+  }
+
+  .output-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
   }
 </style>
 </head>
@@ -295,7 +303,7 @@
   <div>
     <div class="section-header">
       <label>Output</label>
-      <div style="display:flex;gap:1rem;align-items:center">
+      <div class="output-controls">
         <label class="option-label">
           <input type="checkbox" id="opt-line-nums" checked> Line numbers
         </label>
@@ -351,7 +359,7 @@
           if (/^[-*+•] |^\d+[.)] |^#{1,6} /.test(rest)) return "\n";
           // Preserve newline after heading lines
           const before = para.slice(0, offset);
-          const lastLine = before.split("\n").pop();
+          const lastLine = before.substring(before.lastIndexOf("\n") + 1);
           if (/^\s*(?:[⏺•]\s*)?#{1,6} /.test(lastLine)) return "\n";
           return " ";
         });
@@ -374,7 +382,7 @@
   const placeholder = output.querySelector(".output-placeholder");
 
   function renderLines(text) {
-    output.replaceChildren(gutterBg);
+    const frag = document.createDocumentFragment();
     const lines = text.split("\n");
     lines.forEach((line, i) => {
       const row = document.createElement("div");
@@ -390,8 +398,9 @@
 
       row.appendChild(num);
       row.appendChild(txt);
-      output.appendChild(row);
+      frag.appendChild(row);
     });
+    output.replaceChildren(gutterBg, frag);
   }
 
   function update() {
@@ -424,11 +433,13 @@
   clearBtn.addEventListener("click", () => {
     input.value = "";
     input.focus();
+    clearTimeout(debounceTimer);
     update();
   });
 
   [optStrip, optJoin, optUnwrap, optCollapse, optTrim].forEach(cb => cb.addEventListener("change", () => {
     syncCards();
+    clearTimeout(debounceTimer);
     update();
   }));
 
@@ -443,7 +454,7 @@
 
   // Cmd+A in the output box selects only the text content, not line numbers
   output.addEventListener("keydown", (e) => {
-    if (e.key === "a" && e.metaKey && !e.shiftKey) {
+    if (e.key === "a" && (e.metaKey || e.ctrlKey) && !e.shiftKey) {
       e.preventDefault();
       const sel = window.getSelection();
       sel.removeAllRanges();
@@ -473,13 +484,15 @@
     return Promise.resolve();
   }
 
+  let copyResetTimer;
   copyBtn.addEventListener("click", () => {
     const text = lastClean;
     if (!text) return;
     copyText(text).then(() => {
       copyBtn.textContent = "Copied!";
       copyBtn.classList.add("copied");
-      setTimeout(() => {
+      clearTimeout(copyResetTimer);
+      copyResetTimer = setTimeout(() => {
         copyBtn.textContent = "Copy";
         copyBtn.classList.remove("copied");
       }, 1500);

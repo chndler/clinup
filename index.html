@@ -136,7 +136,6 @@
     margin-bottom: 0.35rem;
   }
 
-
   .output-box.empty { padding: 0.75rem; }
   .output-box.empty:not(.no-line-nums) { padding-left: 3.25rem; }
   .output-box.empty .output-placeholder { color: var(--text-faint); }
@@ -345,7 +344,7 @@
       result = result.replace(/ {2,}/g, " ");
     }
 
-    if (optTrim.checked && !optUnwrap.checked) {
+    if (optTrim.checked) {
       result = result.trim();
     }
 
@@ -353,15 +352,10 @@
   }
 
   const gutterBg = output.querySelector(".output-gutter-bg");
-
-  function clearOutput() {
-    while (output.lastChild && output.lastChild !== gutterBg) {
-      output.removeChild(output.lastChild);
-    }
-  }
+  const placeholder = output.querySelector(".output-placeholder");
 
   function renderLines(text) {
-    clearOutput();
+    output.replaceChildren(gutterBg);
     const lines = text.split("\n");
     lines.forEach((line, i) => {
       const row = document.createElement("div");
@@ -384,11 +378,7 @@
   function update() {
     const raw = input.value;
     if (!raw.trim()) {
-      clearOutput();
-      const placeholder = document.createElement("span");
-      placeholder.className = "output-placeholder";
-      placeholder.textContent = "Cleaned text will appear here";
-      output.appendChild(placeholder);
+      output.replaceChildren(gutterBg, placeholder);
       output.classList.add("empty");
       lastClean = "";
       return;
@@ -398,12 +388,10 @@
     renderLines(lastClean);
   }
 
-
   function debouncedUpdate() {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(update, 60);
   }
-
 
   function syncCards() {
     optionCards.forEach(card => {

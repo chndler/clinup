@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>clinup</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg-primary: #0d1117;
+    --bg-secondary: #161b22;
+    --bg-tertiary: #21262d;
+    --border: #30363d;
+    --border-hover: #484f58;
+    --text-primary: #e6edf3;
+    --text-secondary: #c9d1d9;
+    --text-muted: #7d8590;
+    --text-faint: #484f58;
+    --accent: #58a6ff;
+    --success: #3fb950;
+    --font-mono: "SF Mono", "Fira Code", "Fira Mono", Menlo, Consolas, monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  ::selection { background: rgba(56, 139, 253, 0.3); }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem;
+  }
+
+  h1 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: var(--text-primary);
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  textarea, .output-box {
+    width: 100%;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    transition: border-color 0.15s;
+  }
+
+  textarea:focus, .output-box:focus { border-color: var(--accent); outline: none; }
+
+  textarea {
+    min-height: 160px;
+    padding: 0.75rem;
+    resize: vertical;
+  }
+
+  .output-box {
+    min-height: 64px;
+    cursor: text;
+    overflow: auto;
+    padding: 0.75rem 0;
+    position: relative;
+  }
+
+  .output-line {
+    display: flex;
+    transition: background 0.1s;
+  }
+
+  .output-line:hover { background: rgba(136, 198, 255, 0.04); }
+
+  .output-gutter-bg {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 2.5rem;
+    background: var(--bg-primary);
+    border-radius: 6px 0 0 6px;
+    pointer-events: none;
+  }
+
+  .output-box.no-line-nums .output-gutter-bg { display: none; }
+
+  .output-line .line-num {
+    min-width: 2.5rem;
+    text-align: right;
+    padding: 0 0.5rem;
+    color: var(--text-faint);
+    user-select: none;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .output-line .line-text {
+    flex: 1;
+    white-space: pre-wrap;
+    word-break: break-all;
+    padding: 0 0.5rem 0 0.75rem;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.35rem;
+  }
+
+
+  .output-box.empty { padding: 0.75rem; }
+  .output-box.empty:not(.no-line-nums) { padding-left: 3.25rem; }
+  .output-box.empty .output-placeholder { color: var(--text-faint); }
+
+  .output-box.no-line-nums .line-num { display: none; }
+  .output-box.no-line-nums .line-text { padding-left: 0.75rem; }
+  .output-box.no-wrap .line-text { white-space: pre; }
+
+  .copy-btn {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-muted);
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+  }
+
+  .copy-btn:hover { background: var(--border); color: var(--text-primary); }
+  .copy-btn.copied { color: var(--success); border-color: var(--success); }
+
+  .options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-top: 0.35rem;
+  }
+
+  @media (max-width: 540px) {
+    .options { grid-template-columns: 1fr; }
+  }
+
+  .option-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.5rem 0.65rem;
+    transition: opacity 0.15s, border-color 0.15s;
+  }
+
+  .option-card:hover { border-color: var(--border-hover); }
+  .option-card.disabled { opacity: 0.4; }
+
+  .option-label {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .option-label input[type="checkbox"] {
+    accent-color: var(--accent);
+  }
+
+  .option-example {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-top: 0.35rem;
+    padding-left: 1.35rem;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: var(--text-faint);
+  }
+
+  .option-example code {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    background: var(--bg-primary);
+    padding: 0.15rem 0.35rem;
+    border-radius: 3px;
+    white-space: pre;
+    color: var(--text-muted);
+  }
+
+  .option-example .arrow {
+    color: var(--success);
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+
+<h1>clinup</h1>
+<p class="subtitle">Paste CLI output, get clean text.</p>
+
+<div class="container">
+  <div>
+    <div class="section-header">
+      <label for="input">Input</label>
+      <button class="copy-btn" id="clear-btn" title="Clear input">Clear</button>
+    </div>
+    <textarea id="input" placeholder="Paste CLI commands or text here..." spellcheck="false" autofocus></textarea>
+  </div>
+
+  <div>
+    <label>Options</label>
+    <div class="options">
+    <div class="option-card">
+      <label class="option-label">
+        <input type="checkbox" id="opt-join" checked> Join line continuations (\)
+      </label>
+      <div class="option-example">
+        <code>cmd \\n    --flag</code>
+        <span class="arrow">&rarr;</span>
+        <code>cmd --flag</code>
+      </div>
+    </div>
+    <div class="option-card">
+      <label class="option-label">
+        <input type="checkbox" id="opt-unwrap" checked> Unwrap paragraphs
+      </label>
+      <div class="option-example">
+        <code>line one\n  continues here</code>
+        <span class="arrow">&rarr;</span>
+        <code>line one continues here</code>
+      </div>
+    </div>
+    <div class="option-card">
+      <label class="option-label">
+        <input type="checkbox" id="opt-collapse" checked> Collapse extra spaces
+      </label>
+      <div class="option-example">
+        <code>too&nbsp; &nbsp;many&nbsp; &nbsp;spaces</code>
+        <span class="arrow">&rarr;</span>
+        <code>too many spaces</code>
+      </div>
+    </div>
+    <div class="option-card">
+      <label class="option-label">
+        <input type="checkbox" id="opt-trim" checked> Trim outer whitespace
+      </label>
+      <div class="option-example">
+        <code>&nbsp; &nbsp;hello world&nbsp; &nbsp;</code>
+        <span class="arrow">&rarr;</span>
+        <code>hello world</code>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div>
+    <div class="section-header">
+      <label>Output</label>
+      <div style="display:flex;gap:1rem;align-items:center">
+        <label class="option-label">
+          <input type="checkbox" id="opt-line-nums" checked> Line numbers
+        </label>
+        <label class="option-label">
+          <input type="checkbox" id="opt-wrap" checked> Wrap
+        </label>
+        <button class="copy-btn" id="copy-btn" title="Copy to clipboard">Copy</button>
+      </div>
+    </div>
+    <div>
+      <div id="output" class="output-box empty" tabindex="0">
+        <div class="output-gutter-bg"></div>
+        <span class="output-placeholder">Cleaned text will appear here</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const input       = document.getElementById("input");
+  const output      = document.getElementById("output");
+  const copyBtn     = document.getElementById("copy-btn");
+  const clearBtn    = document.getElementById("clear-btn");
+  const optJoin     = document.getElementById("opt-join");
+  const optUnwrap   = document.getElementById("opt-unwrap");
+  const optCollapse = document.getElementById("opt-collapse");
+  const optTrim     = document.getElementById("opt-trim");
+  const optLineNums = document.getElementById("opt-line-nums");
+  const optWrap     = document.getElementById("opt-wrap");
+  const optionCards = document.querySelectorAll(".option-card");
+
+  let lastClean = "";
+  let debounceTimer;
+
+  function clean(text) {
+    let result = text;
+
+    if (optJoin.checked) {
+      result = result.replace(/\\\s*\n\s*/g, " ");
+    }
+
+    if (optUnwrap.checked) {
+      const paragraphs = result.split(/\n\s*\n/);
+      result = paragraphs.map(para => {
+        // Unwrap lines, but preserve newlines before list items
+        const unwrapped = para.replace(/\n\s*/g, (match, offset) => {
+          const rest = para.slice(offset + match.length);
+          if (/^[-*+•] |^\d+[.)] /.test(rest)) return "\n";
+          return " ";
+        });
+        return optTrim.checked ? unwrapped.trim() : unwrapped;
+      }).join("\n\n");
+    }
+
+    if (optCollapse.checked) {
+      result = result.replace(/ {2,}/g, " ");
+    }
+
+    if (optTrim.checked && !optUnwrap.checked) {
+      result = result.trim();
+    }
+
+    return result;
+  }
+
+  const gutterBg = output.querySelector(".output-gutter-bg");
+
+  function clearOutput() {
+    while (output.lastChild && output.lastChild !== gutterBg) {
+      output.removeChild(output.lastChild);
+    }
+  }
+
+  function renderLines(text) {
+    clearOutput();
+    const lines = text.split("\n");
+    lines.forEach((line, i) => {
+      const row = document.createElement("div");
+      row.className = "output-line";
+
+      const num = document.createElement("span");
+      num.className = "line-num";
+      num.textContent = i + 1;
+
+      const txt = document.createElement("span");
+      txt.className = "line-text";
+      txt.textContent = line || "\u00A0";
+
+      row.appendChild(num);
+      row.appendChild(txt);
+      output.appendChild(row);
+    });
+  }
+
+  function update() {
+    const raw = input.value;
+    if (!raw.trim()) {
+      clearOutput();
+      const placeholder = document.createElement("span");
+      placeholder.className = "output-placeholder";
+      placeholder.textContent = "Cleaned text will appear here";
+      output.appendChild(placeholder);
+      output.classList.add("empty");
+      lastClean = "";
+      return;
+    }
+    output.classList.remove("empty");
+    lastClean = clean(raw);
+    renderLines(lastClean);
+  }
+
+
+  function debouncedUpdate() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(update, 60);
+  }
+
+
+  function syncCards() {
+    optionCards.forEach(card => {
+      const cb = card.querySelector("input[type=checkbox]");
+      card.classList.toggle("disabled", !cb.checked);
+    });
+  }
+
+  input.addEventListener("input", debouncedUpdate);
+
+  clearBtn.addEventListener("click", () => {
+    input.value = "";
+    input.focus();
+    update();
+  });
+
+  [optJoin, optUnwrap, optCollapse, optTrim].forEach(cb => cb.addEventListener("change", () => {
+    syncCards();
+    update();
+  }));
+
+  [
+    { el: optLineNums, cls: "no-line-nums" },
+    { el: optWrap, cls: "no-wrap" },
+  ].forEach(({ el, cls }) => {
+    el.addEventListener("change", () => output.classList.toggle(cls, !el.checked));
+  });
+
+  syncCards();
+
+  // Cmd+A in the output box selects only the text content, not line numbers
+  output.addEventListener("keydown", (e) => {
+    if (e.key === "a" && e.metaKey && !e.shiftKey) {
+      e.preventDefault();
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      const texts = output.querySelectorAll(".line-text");
+      if (texts.length) {
+        const range = document.createRange();
+        range.setStartBefore(texts[0]);
+        range.setEndAfter(texts[texts.length - 1]);
+        sel.addRange(range);
+      }
+    }
+  });
+
+  function copyText(text) {
+    // navigator.clipboard requires HTTPS/localhost — falls back for file:// URLs
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text);
+    }
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    return Promise.resolve();
+  }
+
+  copyBtn.addEventListener("click", () => {
+    const text = lastClean;
+    if (!text) return;
+    copyText(text).then(() => {
+      copyBtn.textContent = "Copied!";
+      copyBtn.classList.add("copied");
+      setTimeout(() => {
+        copyBtn.textContent = "Copy";
+        copyBtn.classList.remove("copied");
+      }, 1500);
+    });
+  });
+</script>
+
+</body>
+</html>

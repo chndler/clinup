@@ -241,6 +241,16 @@
     <div class="options">
     <div class="option-card">
       <label class="option-label">
+        <input type="checkbox" id="opt-strip-trailing" checked> Strip trailing whitespace
+      </label>
+      <div class="option-example">
+        <code>hello&nbsp; &nbsp; &nbsp;\n</code>
+        <span class="arrow">&rarr;</span>
+        <code>hello\n</code>
+      </div>
+    </div>
+    <div class="option-card">
+      <label class="option-label">
         <input type="checkbox" id="opt-join" checked> Join line continuations (\)
       </label>
       <div class="option-example">
@@ -309,6 +319,7 @@
   const output      = document.getElementById("output");
   const copyBtn     = document.getElementById("copy-btn");
   const clearBtn    = document.getElementById("clear-btn");
+  const optStrip    = document.getElementById("opt-strip-trailing");
   const optJoin     = document.getElementById("opt-join");
   const optUnwrap   = document.getElementById("opt-unwrap");
   const optCollapse = document.getElementById("opt-collapse");
@@ -323,6 +334,10 @@
   function clean(text) {
     let result = text;
 
+    if (optStrip.checked) {
+      result = result.replace(/[^\S\n]+$/gm, "");
+    }
+
     if (optJoin.checked) {
       result = result.replace(/\\\s*\n\s*/g, " ");
     }
@@ -330,10 +345,14 @@
     if (optUnwrap.checked) {
       const paragraphs = result.split(/\n\s*\n/);
       result = paragraphs.map(para => {
-        // Unwrap lines, but preserve newlines before list items
+        // Unwrap lines, but preserve newlines before list items and headings
         const unwrapped = para.replace(/\n\s*/g, (match, offset) => {
           const rest = para.slice(offset + match.length);
-          if (/^[-*+•] |^\d+[.)] /.test(rest)) return "\n";
+          if (/^[-*+•] |^\d+[.)] |^#{1,6} /.test(rest)) return "\n";
+          // Preserve newline after heading lines
+          const before = para.slice(0, offset);
+          const lastLine = before.split("\n").pop();
+          if (/^\s*(?:[⏺•]\s*)?#{1,6} /.test(lastLine)) return "\n";
           return " ";
         });
         return optTrim.checked ? unwrapped.trim() : unwrapped;
@@ -408,7 +427,7 @@
     update();
   });
 
-  [optJoin, optUnwrap, optCollapse, optTrim].forEach(cb => cb.addEventListener("change", () => {
+  [optStrip, optJoin, optUnwrap, optCollapse, optTrim].forEach(cb => cb.addEventListener("change", () => {
     syncCards();
     update();
   }));

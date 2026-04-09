@@ -131,8 +131,10 @@
 
   .section-header {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
+    gap: 0.25rem;
     margin-bottom: 0.35rem;
   }
 
@@ -143,6 +145,12 @@
   .output-box.no-line-nums .line-num { display: none; }
   .output-box.no-line-nums .line-text { padding-left: 0.75rem; }
   .output-box.no-wrap .line-text { white-space: pre; }
+
+  .section-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.35rem;
+  }
 
   .copy-btn {
     background: var(--bg-tertiary);
@@ -235,6 +243,7 @@
 
   .output-controls {
     display: flex;
+    flex-wrap: wrap;
     gap: 1rem;
     align-items: center;
   }
@@ -249,9 +258,11 @@
   <div>
     <div class="section-header">
       <label for="input">Input</label>
-      <button class="copy-btn" id="clear-btn" title="Clear input">Clear</button>
     </div>
     <textarea id="input" placeholder="Paste CLI commands or text here..." spellcheck="false" autofocus></textarea>
+    <div class="section-footer">
+      <button class="copy-btn" id="clear-btn" title="Clear input">Clear</button>
+    </div>
   </div>
 
   <div>
@@ -323,7 +334,6 @@
         <label class="option-label">
           <input type="checkbox" id="opt-wrap" checked> Wrap
         </label>
-        <button class="copy-btn" id="copy-btn" title="Copy to clipboard">Copy</button>
       </div>
     </div>
     <div>
@@ -331,6 +341,9 @@
         <div class="output-gutter-bg"></div>
         <span class="output-placeholder">Cleaned text will appear here</span>
       </div>
+    </div>
+    <div class="section-footer">
+      <button class="copy-btn" id="copy-btn" title="Copy to clipboard">Copy</button>
     </div>
   </div>
 </div>

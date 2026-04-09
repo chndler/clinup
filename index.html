@@ -231,6 +231,8 @@
     flex-shrink: 0;
   }
 
+  .ws { color: var(--text-muted); opacity: 0.5; }
+
   .output-controls {
     display: flex;
     gap: 1rem;
@@ -316,6 +318,9 @@
           <input type="checkbox" id="opt-line-nums" checked> Line numbers
         </label>
         <label class="option-label">
+          <input type="checkbox" id="opt-whitespace"> Whitespace
+        </label>
+        <label class="option-label">
           <input type="checkbox" id="opt-wrap" checked> Wrap
         </label>
         <button class="copy-btn" id="copy-btn" title="Copy to clipboard">Copy</button>
@@ -340,8 +345,9 @@
   const optUnwrap   = document.getElementById("opt-unwrap");
   const optCollapse = document.getElementById("opt-collapse");
   const optTrim     = document.getElementById("opt-trim");
-  const optLineNums = document.getElementById("opt-line-nums");
-  const optWrap     = document.getElementById("opt-wrap");
+  const optLineNums   = document.getElementById("opt-line-nums");
+  const optWhitespace = document.getElementById("opt-whitespace");
+  const optWrap       = document.getElementById("opt-wrap");
   const optionCards = document.querySelectorAll(".option-card");
 
   let lastClean = "";
@@ -389,6 +395,31 @@
   const gutterBg = output.querySelector(".output-gutter-bg");
   const placeholder = output.querySelector(".output-placeholder");
 
+  function renderLineContent(container, line) {
+    if (!optWhitespace.checked) {
+      container.textContent = line || "\u00A0";
+      return;
+    }
+    if (!line) { container.textContent = "\u00A0"; return; }
+    const parts = line.split(/( +|\t+)/);
+    for (const part of parts) {
+      if (!part) continue;
+      if (/^ +$/.test(part)) {
+        const span = document.createElement("span");
+        span.className = "ws";
+        span.textContent = "\u00B7".repeat(part.length);
+        container.appendChild(span);
+      } else if (/^\t+$/.test(part)) {
+        const span = document.createElement("span");
+        span.className = "ws";
+        span.textContent = "\u2192".repeat(part.length);
+        container.appendChild(span);
+      } else {
+        container.appendChild(document.createTextNode(part));
+      }
+    }
+  }
+
   function renderLines(text) {
     const frag = document.createDocumentFragment();
     const lines = text.split("\n");
@@ -402,7 +433,7 @@
 
       const txt = document.createElement("span");
       txt.className = "line-text";
-      txt.textContent = line || "\u00A0";
+      renderLineContent(txt, line);
 
       row.appendChild(num);
       row.appendChild(txt);
@@ -456,6 +487,10 @@
     { el: optWrap, cls: "no-wrap" },
   ].forEach(({ el, cls }) => {
     el.addEventListener("change", () => output.classList.toggle(cls, !el.checked));
+  });
+
+  optWhitespace.addEventListener("change", () => {
+    if (lastClean) renderLines(lastClean);
   });
 
   syncCards();

@@ -7,9 +7,12 @@
 <style>
   :root {
     color-scheme: dark;
+
+    /* colors */
     --bg-primary: #0d1117;
     --bg-secondary: #161b22;
     --bg-tertiary: #21262d;
+    --border-subtle: #21262d;
     --border: #30363d;
     --border-hover: #484f58;
     --text-primary: #e6edf3;
@@ -18,34 +21,65 @@
     --text-faint: #484f58;
     --accent: #58a6ff;
     --success: #3fb950;
+    --selection-bg: rgba(56, 139, 253, 0.3);
+    --line-hover-bg: rgba(136, 198, 255, 0.04);
+
+    /* fonts */
     --font-mono: "SF Mono", "Fira Code", "Fira Mono", Menlo, Consolas, monospace;
+
+    /* type scale */
+    --font-size-xs: 0.5625rem;   /* 9px  — card examples */
+    --font-size-sm: 0.625rem;    /* 10px — labels, buttons, controls */
+    --font-size-md: 0.6875rem;   /* 11px — card names, subtitle */
+    --font-size-lg: 0.75rem;     /* 12px — content, code */
+    --font-size-title: 0.875rem; /* 14px — title */
+
+    /* spacing */
+    --space-xs: 0.25rem;  /* 4px */
+    --space-sm: 0.5rem;   /* 8px */
+    --space-md: 1rem;     /* 16px */
+    --space-lg: 1.5rem;   /* 24px */
+
+    /* radii */
+    --radius-sm: 2px;
+    --radius-md: 3px;
+
+    /* diff */
+    --diff-removed-bg: rgba(248, 81, 73, 0.10);
+    --diff-removed-gutter-bg: rgba(248, 81, 73, 0.20);
+    --diff-removed-text: #ffa198;
+    --diff-removed-gutter: #f85149;
+    --diff-added-bg: rgba(63, 185, 80, 0.10);
+    --diff-added-gutter-bg: rgba(63, 185, 80, 0.20);
+    --diff-added-text: #7ee787;
+    --diff-added-gutter: #3fb950;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
-  ::selection { background: rgba(56, 139, 253, 0.3); }
+  ::selection { background: var(--selection-bg); }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: var(--font-mono);
     background: var(--bg-primary);
     color: var(--text-secondary);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 2rem 1rem;
+    padding: var(--space-lg) var(--space-md);
   }
 
   h1 {
-    font-size: 1.4rem;
+    font-size: var(--font-size-title);
     font-weight: 600;
-    margin-bottom: 0.25rem;
+    margin-bottom: var(--space-xs);
     color: var(--text-primary);
   }
 
   .subtitle {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    margin-bottom: 1.5rem;
+    font-size: var(--font-size-md);
+    color: var(--text-faint);
+    margin-bottom: var(--space-lg);
   }
 
   .container {
@@ -53,25 +87,25 @@
     max-width: 800px;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: var(--space-md);
   }
 
   label {
-    font-size: 0.8rem;
+    font-size: var(--font-size-sm);
     font-weight: 500;
-    color: var(--text-muted);
+    color: var(--text-faint);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
   }
 
   textarea, .output-box {
     width: 100%;
     background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: 6px;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
     color: var(--text-primary);
     font-family: var(--font-mono);
-    font-size: 0.85rem;
+    font-size: var(--font-size-lg);
     line-height: 1.5;
     transition: border-color 0.15s;
   }
@@ -79,8 +113,9 @@
   textarea:focus, .output-box:focus { border-color: var(--accent); outline: none; }
 
   textarea {
+    display: block;
     min-height: 160px;
-    padding: 0.75rem;
+    padding: var(--space-sm) var(--space-sm);
     resize: vertical;
   }
 
@@ -88,8 +123,12 @@
     min-height: 64px;
     cursor: default;
     overflow: auto;
-    padding: 0.75rem 0;
+    padding: var(--space-sm) 0;
     position: relative;
+  }
+
+  .output-box.no-wrap .output-lines-wrap {
+    min-width: max-content;
   }
 
   .output-line {
@@ -97,7 +136,7 @@
     transition: background 0.1s;
   }
 
-  .output-line:hover { background: rgba(136, 198, 255, 0.04); }
+  .output-line:hover { background: var(--line-hover-bg); }
 
   .output-gutter-bg {
     position: absolute;
@@ -106,7 +145,7 @@
     left: 0;
     width: 2.5rem;
     background: var(--bg-primary);
-    border-radius: 6px 0 0 6px;
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
     pointer-events: none;
   }
 
@@ -115,7 +154,7 @@
   .output-line .line-num {
     min-width: 2.5rem;
     text-align: right;
-    padding: 0 0.5rem;
+    padding: 0 var(--space-sm);
     color: var(--text-faint);
     user-select: none;
     flex-shrink: 0;
@@ -126,7 +165,7 @@
     flex: 1;
     white-space: pre-wrap;
     word-break: break-all;
-    padding: 0 0.5rem 0 0.75rem;
+    padding: 0 var(--space-sm) 0 var(--space-sm);
   }
 
   .section-header {
@@ -134,31 +173,34 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 0.25rem;
-    margin-bottom: 0.35rem;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-xs);
   }
 
-  .output-box.empty { padding: 0.75rem; }
+  .output-box.empty { padding: var(--space-sm); }
   .output-box.empty:not(.no-line-nums) { padding-left: 3.25rem; }
   .output-box.empty .output-placeholder { color: var(--text-faint); }
 
   .output-box.no-line-nums .line-num { display: none; }
-  .output-box.no-line-nums .line-text { padding-left: 0.75rem; }
+  .output-box.no-line-nums .line-text { padding-left: var(--space-sm); }
   .output-box.no-wrap .line-text { white-space: pre; }
 
   .section-footer {
     display: flex;
     justify-content: flex-end;
-    margin-top: 0.35rem;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-top: var(--space-xs);
   }
 
   .copy-btn {
     background: var(--bg-tertiary);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    color: var(--text-muted);
-    padding: 0.2rem 0.5rem;
-    font-size: 0.75rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-faint);
+    padding: var(--radius-sm) var(--space-sm);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
     white-space: nowrap;
@@ -170,8 +212,8 @@
   .options {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 0.5rem;
-    margin-top: 0.35rem;
+    gap: var(--space-xs);
+    margin-top: var(--space-xs);
     max-width: 100%;
     overflow: hidden;
   }
@@ -184,9 +226,9 @@
 
   .option-card {
     background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 0.5rem 0.65rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 0.375rem var(--space-sm);
     transition: opacity 0.15s, border-color 0.15s;
     min-width: 0;
     overflow: hidden;
@@ -198,8 +240,8 @@
   .option-label {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
-    font-size: 0.8rem;
+    gap: var(--space-xs);
+    font-size: var(--font-size-md);
     color: var(--text-secondary);
     cursor: pointer;
     user-select: none;
@@ -212,10 +254,10 @@
   .option-example {
     display: flex;
     align-items: baseline;
-    gap: 0.5rem;
-    margin-top: 0.35rem;
+    gap: var(--space-sm);
+    margin-top: var(--space-xs);
     padding-left: 1.35rem;
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     line-height: 1.4;
     color: var(--text-faint);
     min-width: 0;
@@ -224,10 +266,10 @@
 
   .option-example code {
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-size: var(--font-size-xs);
     background: var(--bg-primary);
-    padding: 0.15rem 0.35rem;
-    border-radius: 3px;
+    padding: var(--radius-sm) var(--space-xs);
+    border-radius: var(--radius-sm);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -244,8 +286,93 @@
   .output-controls {
     display: flex;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: var(--space-md);
     align-items: center;
+  }
+
+  .toggle-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+    color: var(--text-faint);
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.15s;
+  }
+
+  .toggle-btn .toggle-icon {
+    color: var(--text-faint);
+    transition: color 0.15s;
+  }
+
+  .toggle-btn.active .toggle-icon {
+    color: var(--accent);
+  }
+
+  .diff-summary {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
+    color: var(--text-faint);
+  }
+
+  .output-box.diff-mode .output-gutter-bg {
+    width: 5.875rem;
+  }
+
+  .output-box.diff-mode .line-num,
+  .output-box.diff-mode .diff-indicator {
+    background: var(--bg-primary);
+    position: relative;
+  }
+
+  .output-box.diff-mode .line-text {
+    padding-left: var(--space-sm);
+  }
+
+  .diff-indicator {
+    min-width: 0.875rem;
+    text-align: center;
+    user-select: none;
+    flex-shrink: 0;
+    font-size: var(--font-size-sm);
+  }
+
+  .output-line.diff-removed .diff-indicator {
+    background: var(--diff-removed-gutter-bg);
+    color: var(--diff-removed-gutter);
+  }
+
+  .output-line.diff-added .diff-indicator {
+    background: var(--diff-added-gutter-bg);
+    color: var(--diff-added-gutter);
+  }
+
+  .output-line.diff-removed {
+    background: var(--diff-removed-bg);
+  }
+
+  .output-line.diff-removed .line-num {
+    background: var(--diff-removed-gutter-bg);
+    color: var(--diff-removed-gutter);
+  }
+
+  .output-line.diff-removed .line-text {
+    color: var(--diff-removed-text);
+  }
+
+  .output-line.diff-added {
+    background: var(--diff-added-bg);
+  }
+
+  .output-line.diff-added .line-num {
+    background: var(--diff-added-gutter-bg);
+    color: var(--diff-added-gutter);
+  }
+
+  .output-line.diff-added .line-text {
+    color: var(--diff-added-text);
   }
 </style>
 </head>
@@ -266,11 +393,11 @@
   </div>
 
   <div>
-    <label>Options</label>
+    <label>Transforms</label>
     <div class="options">
     <div class="option-card">
       <label class="option-label">
-        <input type="checkbox" id="opt-strip-trailing" checked> Strip trailing whitespace
+        <input type="checkbox" id="opt-strip-trailing" checked> strip-trailing
       </label>
       <div class="option-example">
         <code>hello&nbsp; &nbsp; &nbsp;\n</code>
@@ -280,7 +407,7 @@
     </div>
     <div class="option-card">
       <label class="option-label">
-        <input type="checkbox" id="opt-join" checked> Join line continuations (\)
+        <input type="checkbox" id="opt-join" checked> join-continuations
       </label>
       <div class="option-example">
         <code>cmd \\n    --flag</code>
@@ -290,7 +417,7 @@
     </div>
     <div class="option-card">
       <label class="option-label">
-        <input type="checkbox" id="opt-unwrap" checked> Unwrap paragraphs
+        <input type="checkbox" id="opt-unwrap" checked> unwrap-paragraphs
       </label>
       <div class="option-example">
         <code>line one\n  continues here</code>
@@ -300,7 +427,7 @@
     </div>
     <div class="option-card">
       <label class="option-label">
-        <input type="checkbox" id="opt-collapse" checked> Collapse extra spaces
+        <input type="checkbox" id="opt-collapse" checked> collapse-spaces
       </label>
       <div class="option-example">
         <code>too&nbsp; &nbsp;many&nbsp; &nbsp;spaces</code>
@@ -310,7 +437,7 @@
     </div>
     <div class="option-card">
       <label class="option-label">
-        <input type="checkbox" id="opt-trim" checked> Trim outer whitespace
+        <input type="checkbox" id="opt-trim" checked> trim-outer
       </label>
       <div class="option-example">
         <code>&nbsp; &nbsp;hello world&nbsp; &nbsp;</code>
@@ -325,24 +452,26 @@
     <div class="section-header">
       <label>Output</label>
       <div class="output-controls">
-        <label class="option-label">
-          <input type="checkbox" id="opt-line-nums" checked> Line numbers
-        </label>
-        <label class="option-label">
-          <input type="checkbox" id="opt-whitespace"> Whitespace
-        </label>
-        <label class="option-label">
-          <input type="checkbox" id="opt-wrap" checked> Wrap
-        </label>
+        <button class="toggle-btn active" id="toggle-line-nums" type="button" title="Show line numbers in the gutter">
+          <span class="toggle-icon">✓</span> lines
+        </button>
+        <button class="toggle-btn" id="toggle-whitespace" type="button" title="Reveal spaces (·) and tabs (→)">
+          <span class="toggle-icon">·</span> ws
+        </button>
+        <button class="toggle-btn active" id="toggle-wrap" type="button" title="Wrap long lines to fit the viewport">
+          <span class="toggle-icon">✓</span> wrap
+        </button>
+        <button class="toggle-btn" id="toggle-diff" type="button" title="Show what changed between input and output">
+          <span class="toggle-icon">·</span> diff
+        </button>
       </div>
     </div>
-    <div>
-      <div id="output" class="output-box empty" tabindex="0">
-        <div class="output-gutter-bg"></div>
-        <span class="output-placeholder">Cleaned text will appear here</span>
-      </div>
+    <div id="output" class="output-box empty" tabindex="0">
+      <div class="output-gutter-bg"></div>
+      <span class="output-placeholder">Cleaned text will appear here</span>
     </div>
     <div class="section-footer">
+      <div id="diff-summary" class="diff-summary" style="display:none"></div>
       <button class="copy-btn" id="copy-btn" title="Copy to clipboard">Copy</button>
     </div>
   </div>
@@ -358,9 +487,11 @@
   const optUnwrap   = document.getElementById("opt-unwrap");
   const optCollapse = document.getElementById("opt-collapse");
   const optTrim     = document.getElementById("opt-trim");
-  const optLineNums   = document.getElementById("opt-line-nums");
-  const optWhitespace = document.getElementById("opt-whitespace");
-  const optWrap       = document.getElementById("opt-wrap");
+  const toggleLineNums   = document.getElementById("toggle-line-nums");
+  const toggleWhitespace = document.getElementById("toggle-whitespace");
+  const toggleWrap       = document.getElementById("toggle-wrap");
+  const toggleDiff       = document.getElementById("toggle-diff");
+  const diffSummary      = document.getElementById("diff-summary");
   const optionCards = document.querySelectorAll(".option-card");
 
   let lastClean = "";
@@ -405,11 +536,44 @@
     return result;
   }
 
+  function computeDiff(oldLines, newLines) {
+    const m = oldLines.length;
+    const n = newLines.length;
+
+    // Build LCS table
+    const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        dp[i][j] = oldLines[i - 1] === newLines[j - 1]
+          ? dp[i - 1][j - 1] + 1
+          : Math.max(dp[i - 1][j], dp[i][j - 1]);
+      }
+    }
+
+    // Backtrack to produce diff entries
+    const entries = [];
+    let i = m, j = n;
+    while (i > 0 || j > 0) {
+      if (i > 0 && j > 0 && oldLines[i - 1] === newLines[j - 1]) {
+        entries.push({ type: "unchanged", text: newLines[j - 1] });
+        i--; j--;
+      } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+        entries.push({ type: "added", text: newLines[j - 1] });
+        j--;
+      } else {
+        entries.push({ type: "removed", text: oldLines[i - 1] });
+        i--;
+      }
+    }
+
+    return entries.reverse();
+  }
+
   const gutterBg = output.querySelector(".output-gutter-bg");
   const placeholder = output.querySelector(".output-placeholder");
 
   function renderLineContent(container, line) {
-    if (!optWhitespace.checked) {
+    if (!isToggleActive(toggleWhitespace)) {
       container.textContent = line || "\u00A0";
       return;
     }
@@ -434,7 +598,8 @@
   }
 
   function renderLines(text) {
-    const frag = document.createDocumentFragment();
+    const wrap = document.createElement("div");
+    wrap.className = "output-lines-wrap";
     const lines = text.split("\n");
     lines.forEach((line, i) => {
       const row = document.createElement("div");
@@ -450,9 +615,85 @@
 
       row.appendChild(num);
       row.appendChild(txt);
-      frag.appendChild(row);
+      wrap.appendChild(row);
     });
-    output.replaceChildren(gutterBg, frag);
+    output.replaceChildren(gutterBg, wrap);
+  }
+
+  function renderDiffLines(rawText, cleanText) {
+    const oldLines = rawText.split("\n");
+    const newLines = cleanText.split("\n");
+    const entries = computeDiff(oldLines, newLines);
+
+    const wrap = document.createElement("div");
+    wrap.className = "output-lines-wrap";
+    let oldNum = 0, newNum = 0;
+    entries.forEach(entry => {
+      if (entry.type === "removed") oldNum++;
+      else if (entry.type === "added") newNum++;
+      else { oldNum++; newNum++; }
+
+      const row = document.createElement("div");
+      row.className = "output-line";
+      if (entry.type !== "unchanged") row.classList.add("diff-" + entry.type);
+
+      const numOld = document.createElement("span");
+      numOld.className = "line-num";
+      numOld.textContent = entry.type !== "added" ? oldNum : "";
+
+      const numNew = document.createElement("span");
+      numNew.className = "line-num";
+      numNew.textContent = entry.type !== "removed" ? newNum : "";
+
+      const indicator = document.createElement("span");
+      indicator.className = "diff-indicator";
+      if (entry.type === "removed") indicator.textContent = "−";
+      else if (entry.type === "added") indicator.textContent = "+";
+
+      const txt = document.createElement("span");
+      txt.className = "line-text";
+      renderLineContent(txt, entry.text);
+
+      row.appendChild(numOld);
+      row.appendChild(numNew);
+      row.appendChild(indicator);
+      row.appendChild(txt);
+      wrap.appendChild(row);
+    });
+
+    output.replaceChildren(gutterBg, wrap);
+
+    // Update diff summary
+    const removed = entries.filter(e => e.type === "removed").length;
+    const added = entries.filter(e => e.type === "added").length;
+    diffSummary.innerHTML = "";
+    if (removed || added) {
+      const addSpan = document.createElement("span");
+      addSpan.style.color = "var(--diff-added-text)";
+      addSpan.textContent = "+" + added;
+      const remSpan = document.createElement("span");
+      remSpan.style.color = "var(--diff-removed-text)";
+      remSpan.textContent = "-" + removed;
+      diffSummary.appendChild(addSpan);
+      diffSummary.appendChild(document.createTextNode(" "));
+      remSpan.style.marginLeft = "var(--space-xs)";
+      diffSummary.appendChild(remSpan);
+    } else {
+      diffSummary.textContent = "no changes";
+    }
+  }
+
+  function renderOutput() {
+    if (!lastClean) return;
+    const diffActive = isToggleActive(toggleDiff);
+    output.classList.toggle("diff-mode", diffActive);
+    if (diffActive) {
+      renderDiffLines(input.value, lastClean);
+      diffSummary.style.display = "";
+    } else {
+      renderLines(lastClean);
+      diffSummary.style.display = "none";
+    }
   }
 
   function update() {
@@ -460,12 +701,15 @@
     if (!raw.trim()) {
       output.replaceChildren(gutterBg, placeholder);
       output.classList.add("empty");
+      output.classList.remove("diff-mode");
       lastClean = "";
+      diffSummary.innerHTML = "";
+      diffSummary.style.display = "none";
       return;
     }
     output.classList.remove("empty");
     lastClean = clean(raw);
-    renderLines(lastClean);
+    renderOutput();
   }
 
   function debouncedUpdate() {
@@ -495,15 +739,34 @@
     update();
   }));
 
-  [
-    { el: optLineNums, cls: "no-line-nums" },
-    { el: optWrap, cls: "no-wrap" },
-  ].forEach(({ el, cls }) => {
-    el.addEventListener("change", () => output.classList.toggle(cls, !el.checked));
+  function isToggleActive(btn) {
+    return btn.classList.contains("active");
+  }
+
+  function toggleButton(btn) {
+    const active = btn.classList.toggle("active");
+    btn.querySelector(".toggle-icon").textContent = active ? "✓" : "·";
+    return active;
+  }
+
+  toggleLineNums.addEventListener("click", () => {
+    const active = toggleButton(toggleLineNums);
+    output.classList.toggle("no-line-nums", !active);
   });
 
-  optWhitespace.addEventListener("change", () => {
-    if (lastClean) renderLines(lastClean);
+  toggleWrap.addEventListener("click", () => {
+    const active = toggleButton(toggleWrap);
+    output.classList.toggle("no-wrap", !active);
+  });
+
+  toggleWhitespace.addEventListener("click", () => {
+    toggleButton(toggleWhitespace);
+    if (lastClean) renderOutput();
+  });
+
+  toggleDiff.addEventListener("click", () => {
+    toggleButton(toggleDiff);
+    if (lastClean) renderOutput();
   });
 
   syncCards();

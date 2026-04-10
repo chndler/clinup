@@ -12,6 +12,7 @@ No dependencies, no build step. Everything runs in your browser; no data is sent
 
 ## Transforms
 
+- **strip-rules** - removes lines made of box-drawing characters (`─`, `═`, etc.) and strips trailing rules from mixed lines
 - **strip-trailing** - removes trailing spaces from each line
 - **join-continuations** - joins `\`-wrapped commands into a single line
 - **unwrap-paragraphs** - rejoins soft-wrapped text while preserving paragraph breaks, list items, and headings
@@ -28,6 +29,7 @@ All transforms are toggleable and run in sequence.
     "-s  -w" \
     ./cmd/server   
 
+  ★ Build Report ─────────────────────────
   Build  completed  with
   3  optimizations  applied:
 
@@ -37,12 +39,14 @@ All transforms are toggleable and run in sequence.
     across  all  packages
   - static  linking  for
     single  binary  output
+  ─────────────────────────────────────────
 
 ```
 becomes
 ```
 go build -ldflags "-s -w" ./cmd/server
 
+★ Build Report
 Build completed with 3 optimizations applied:
 
 - stripped debug symbols and DWARF info
@@ -50,16 +54,16 @@ Build completed with 3 optimizations applied:
 - static linking for single binary output
 ```
 
-## Output controls
+## Display controls
 
-- **lines** - line number gutter (input and output)
-- **ws** - whitespace visualization (spaces as `·`, tabs as `→`)
-- **wrap** - soft line wrapping (input and output)
-- **diff** - [LCS](https://en.wikipedia.org/wiki/Longest_common_subsequence)-based diff view with dual gutters, +/- indicators, and colored summary
+- **lines** - line number gutter
+- **wrap** - soft line wrapping
+- **ws** - whitespace visualization (spaces as `·`, tabs as `→`) - output only
+- **diff** - [LCS](https://en.wikipedia.org/wiki/Longest_common_subsequence)-based diff view with dual gutters, +/- indicators, and colored summary - output only
 
-## Copying
+## Copying Output
 
-The Copy button copies clean text. Cmd/Ctrl+C from the output preserves real characters — whitespace visualization symbols are swapped back to actual spaces/tabs.
+The Copy button copies clean text. Cmd/Ctrl+C from the output preserves real characters - whitespace visualization symbols are swapped back to actual spaces/tabs.
 
 ---
 

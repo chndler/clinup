@@ -109,7 +109,7 @@
     max-width: 800px;
     display: flex;
     flex-direction: column;
-    gap: var(--space-md);
+    gap: var(--space-sm);
   }
 
   label, .section-label {
@@ -262,6 +262,42 @@
 
   .action-btn:hover { background: var(--border); color: var(--text-primary); }
   .action-btn.copied { color: var(--success); border-color: var(--success); }
+
+  .pipeline-connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: auto;
+    margin-left: var(--space-md);
+  }
+
+  .pipeline-connector::before {
+    content: "";
+    width: 1px;
+    height: 0.5rem;
+    background: var(--border);
+  }
+
+
+  .pipeline-connector::after {
+    content: "";
+    width: 0;
+    height: 0;
+    border-left: 3px solid transparent;
+    border-right: 3px solid transparent;
+    border-top: 4px solid var(--border);
+  }
+
+  .transforms-wrap {
+    border: 1px dashed var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--space-sm);
+  }
+
+  .transforms-wrap .section-label {
+    display: block;
+    margin-bottom: var(--space-xs);
+  }
 
   .options {
     display: grid;
@@ -459,14 +495,13 @@
       <textarea id="input" placeholder="Paste CLI commands or text here..." spellcheck="false" autofocus></textarea>
     </div>
     <div class="section-footer">
+      <div class="pipeline-connector"></div>
       <button class="action-btn" id="clear-btn" title="Clear input">Clear</button>
     </div>
   </div>
 
-  <div>
-    <div class="section-header">
-      <span class="section-label">Transforms</span>
-    </div>
+  <div class="transforms-wrap">
+    <span class="section-label">Transforms</span>
     <div class="options">
     <div class="option-card">
       <label class="option-label">
@@ -528,8 +563,10 @@
         <code>hello world</code>
       </div>
     </div>
+    </div>
   </div>
-  </div>
+
+  <div class="pipeline-connector"></div>
 
   <div>
     <div class="section-header">

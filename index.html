@@ -18,11 +18,12 @@
     --text-primary: #e6edf3;
     --text-secondary: #c9d1d9;
     --text-muted: #8b949e;
-    --text-faint: #6e7681;
+    --text-faint: #7d8590;
     --accent: #58a6ff;
     --success: #3fb950;
     --selection-bg: rgba(56, 139, 253, 0.3);
     --line-hover-bg: rgba(136, 198, 255, 0.04);
+    --accent-tint: rgba(88, 166, 255, 0.04);
 
     /* fonts */
     --font-mono: "SF Mono", "Fira Code", "Fira Mono", Menlo, Consolas, monospace;
@@ -56,6 +57,36 @@
     --diff-added-text: #7ee787;
     --diff-added-gutter: #3fb950;
   }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg-primary: #ffffff;
+    --bg-secondary: #f6f8fa;
+    --bg-tertiary: #e1e4e8;
+    --border-subtle: #d8dee4;
+    --border: #afb8c1;
+    --border-hover: #8c959f;
+    --text-primary: #1f2328;
+    --text-secondary: #24292f;
+    --text-muted: #57606a;
+    --text-faint: #656d76;
+    --accent: #0969da;
+    --success: #1a7f37;
+    --selection-bg: rgba(9, 105, 218, 0.2);
+    --line-hover-bg: rgba(208, 215, 222, 0.32);
+    --accent-tint: rgba(9, 105, 218, 0.06);
+    --diff-removed-bg: rgba(255, 129, 130, 0.10);
+    --diff-removed-bg-hover: rgba(255, 129, 130, 0.20);
+    --diff-removed-gutter-bg: rgba(255, 129, 130, 0.30);
+    --diff-removed-text: #82071e;
+    --diff-removed-gutter: #cf222e;
+    --diff-added-bg: rgba(46, 160, 67, 0.10);
+    --diff-added-bg-hover: rgba(46, 160, 67, 0.20);
+    --diff-added-gutter-bg: rgba(46, 160, 67, 0.30);
+    --diff-added-text: #116329;
+    --diff-added-gutter: #1a7f37;
+  }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   ::selection { background: var(--selection-bg); }
@@ -103,6 +134,26 @@
   .site-header a:hover {
     color: var(--text-muted);
   }
+
+  .site-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .theme-toggle {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    padding: 0.125rem var(--space-sm);
+    user-select: none;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .theme-toggle:hover { border-color: var(--border-hover); color: var(--text-secondary); }
 
   .container {
     width: 100%;
@@ -247,7 +298,7 @@
     background: var(--bg-tertiary);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
-    color: var(--text-faint);
+    color: var(--text-muted);
     padding: var(--radius-sm) var(--space-sm);
     font-family: var(--font-mono);
     font-size: var(--font-size-sm);
@@ -323,7 +374,7 @@
     transition: opacity 0.15s, border-color 0.15s, background 0.15s;
     min-width: 0;
   }
-  .option-card:not(.disabled) { border-color: var(--border); background: rgba(88, 166, 255, 0.04); }
+  .option-card:not(.disabled) { border-color: var(--border); background: var(--accent-tint); }
   .option-card.disabled { opacity: 0.5; border-color: var(--border-subtle); background: var(--bg-secondary); }
 
   .option-label {
@@ -400,7 +451,7 @@
   .toggle-btn.active {
     color: var(--text-secondary);
     border-color: var(--border);
-    background: rgba(88, 166, 255, 0.04);
+    background: var(--accent-tint);
   }
 
   .diff-summary {
@@ -450,6 +501,13 @@
   .output-line:is(.diff-removed, .diff-added) .diff-indicator { background: var(--diff-gutter-bg); color: var(--diff-gutter-color); }
   .output-line:is(.diff-removed, .diff-added) .line-text { color: var(--diff-text); }
 </style>
+<script>
+  (function() {
+    const t = localStorage.getItem("theme")
+      || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+    document.documentElement.dataset.theme = t;
+  })();
+</script>
 </head>
 <body>
 
@@ -458,7 +516,10 @@
     <h1>clinup</h1>
     <p class="subtitle">Paste CLI output, get clean text.</p>
   </div>
-  <a href="https://github.com/chndler/clinup" title="View source on GitHub">github<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
+  <div class="site-header-actions">
+    <button class="theme-toggle" id="theme-toggle" type="button" title="Switch to light mode" aria-label="Toggle color theme"><span class="theme-icon">☀</span> light</button>
+    <a href="https://github.com/chndler/clinup" title="View source on GitHub">github<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
+  </div>
 </header>
 
 <div class="container">
@@ -581,6 +642,25 @@
 
 
 <script>
+  const themeToggle  = document.getElementById("theme-toggle");
+
+  function syncThemeIcon() {
+    const dark = document.documentElement.dataset.theme === "dark";
+    const icon = themeToggle.querySelector(".theme-icon");
+    icon.textContent = dark ? "\u263E" : "\u2600";
+    themeToggle.lastChild.textContent = dark ? " dark" : " light";
+    themeToggle.title = dark ? "Switch to light mode" : "Switch to dark mode";
+  }
+
+  themeToggle.addEventListener("click", () => {
+    const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    localStorage.setItem("theme", next);
+    syncThemeIcon();
+  });
+
+  syncThemeIcon();
+
   const input       = document.getElementById("input");
   const output      = document.getElementById("output");
   const copyBtn     = document.getElementById("copy-btn");

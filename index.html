@@ -873,7 +873,7 @@
 
   cardPairs.forEach(([card, cb]) => {
     card.addEventListener("click", (e) => {
-      if (e.target === cb || e.target.closest("label")) return;
+      if (e.target.closest("label")) return;
       cb.checked = !cb.checked;
       cb.dispatchEvent(new Event("change"));
     });

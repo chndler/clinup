@@ -112,7 +112,7 @@
     gap: var(--space-md);
   }
 
-  label {
+  label, .section-label {
     font-size: var(--font-size-sm);
     font-weight: 500;
     color: var(--text-faint);
@@ -151,10 +151,8 @@
     resize: none;
     outline: none;
     padding: var(--space-sm);
-    color: var(--text-primary);
-    font-family: var(--font-mono);
-    font-size: var(--font-size-lg);
-    line-height: 1.5;
+    font: inherit;
+    color: inherit;
   }
 
   .input-gutter {
@@ -229,6 +227,7 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--space-xs);
+    min-height: 1.125rem;
     margin-bottom: var(--space-xs);
   }
 
@@ -268,7 +267,6 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: var(--space-xs);
-    margin-top: var(--space-xs);
     max-width: 100%;
     overflow: hidden;
   }
@@ -332,8 +330,6 @@
   }
 
   .option-example code {
-    font-family: var(--font-mono);
-    font-size: var(--font-size-xs);
     background: var(--bg-primary);
     padding: var(--radius-sm) var(--space-xs);
     border-radius: var(--radius-sm);
@@ -391,6 +387,9 @@
     font-size: var(--font-size-xs);
     color: var(--text-faint);
   }
+
+  .diff-summary-added { color: var(--diff-added-text); }
+  .diff-summary-removed { color: var(--diff-removed-text); margin-left: var(--space-xs); }
 
   .output-box.diff-mode .output-gutter-bg {
     width: 5.875rem;
@@ -465,8 +464,20 @@
   </div>
 
   <div>
-    <label>Transforms</label>
+    <div class="section-header">
+      <span class="section-label">Transforms</span>
+    </div>
     <div class="options">
+    <div class="option-card">
+      <label class="option-label">
+        <input type="checkbox" id="opt-strip-rules" checked><span class="toggle-icon">✓</span> strip-rules
+      </label>
+      <div class="option-example">
+        <code>────────────</code>
+        <span class="arrow">&rarr;</span>
+        <code><em>(removed)</em></code>
+      </div>
+    </div>
     <div class="option-card">
       <label class="option-label">
         <input type="checkbox" id="opt-strip-trailing" checked><span class="toggle-icon">✓</span> strip-trailing
@@ -522,7 +533,7 @@
 
   <div>
     <div class="section-header">
-      <label>Output</label>
+      <span class="section-label">Output</span>
       <div class="controls">
         <button class="toggle-btn" id="toggle-diff" type="button" title="Show what changed between input and output">
           <span class="toggle-icon">·</span> diff
@@ -555,7 +566,8 @@
   const output      = document.getElementById("output");
   const copyBtn     = document.getElementById("copy-btn");
   const clearBtn    = document.getElementById("clear-btn");
-  const optStrip    = document.getElementById("opt-strip-trailing");
+  const optStripTrailing = document.getElementById("opt-strip-trailing");
+  const optRules         = document.getElementById("opt-strip-rules");
   const optJoin     = document.getElementById("opt-join");
   const optUnwrap   = document.getElementById("opt-unwrap");
   const optCollapse = document.getElementById("opt-collapse");
@@ -574,6 +586,11 @@
   let lastClean = "";
   let debounceTimer;
 
+  function setToggleIcon(el, active) {
+    const icon = el.querySelector(".toggle-icon");
+    if (icon) icon.textContent = active ? "\u2713" : "\u00B7";
+  }
+
   function unwrapParagraphs(text, trim) {
     return text.split(/\n\s*\n/).map(para => {
       const unwrapped = para.replace(/\n\s*/g, (match, offset) => {
@@ -590,7 +607,11 @@
 
   function clean(text) {
     let result = text;
-    if (optStrip.checked)    result = result.replace(/[^\S\n]+$/gm, "");
+    if (optRules.checked) {
+      result = result.replace(/^\s*[\u2500-\u257F]{3,}\s*$\n?/gm, "");
+      result = result.replace(/\s+[\u2500-\u257F]{3,}\s*$/gm, "");
+    }
+    if (optStripTrailing.checked) result = result.replace(/[^\S\n]+$/gm, "");
     if (optJoin.checked)     result = result.replace(/\\\s*\n\s*/g, " ");
     if (optUnwrap.checked)   result = unwrapParagraphs(result, optTrim.checked);
     if (optCollapse.checked) result = result.replace(/ {2,}/g, " ");
@@ -653,10 +674,14 @@
       inputMirror.style.width = input.clientWidth + "px";
       inputMirror.style.paddingLeft = cs.paddingLeft;
       inputMirror.style.paddingRight = cs.paddingRight;
-      heights = lines.map(line => {
-        inputMirror.textContent = line || "\u00A0";
-        return inputMirror.offsetHeight;
+      const frag = document.createDocumentFragment();
+      lines.forEach(l => {
+        const div = document.createElement("div");
+        div.textContent = l || "\u00A0";
+        frag.appendChild(div);
       });
+      inputMirror.replaceChildren(frag);
+      heights = Array.from(inputMirror.children, c => c.offsetHeight);
     }
 
     const frags = [];
@@ -766,17 +791,15 @@
   }
 
   function updateDiffSummary(added, removed) {
-    diffSummary.innerHTML = "";
+    diffSummary.textContent = "";
     if (added || removed) {
       const addSpan = document.createElement("span");
-      addSpan.style.color = "var(--diff-added-text)";
+      addSpan.className = "diff-summary-added";
       addSpan.textContent = "+" + added;
       const remSpan = document.createElement("span");
-      remSpan.style.color = "var(--diff-removed-text)";
+      remSpan.className = "diff-summary-removed";
       remSpan.textContent = "-" + removed;
-      remSpan.style.marginLeft = "var(--space-xs)";
       diffSummary.appendChild(addSpan);
-      diffSummary.appendChild(document.createTextNode(" "));
       diffSummary.appendChild(remSpan);
     } else {
       diffSummary.textContent = "no changes";
@@ -803,12 +826,14 @@
       output.classList.add("empty");
       output.classList.remove("diff-mode");
       lastClean = "";
-      diffSummary.innerHTML = "";
+      diffSummary.textContent = "";
       diffSummary.style.display = "none";
       return;
     }
     output.classList.remove("empty");
-    lastClean = clean(raw);
+    const cleaned = clean(raw);
+    if (cleaned === lastClean) return;
+    lastClean = cleaned;
     renderOutput();
   }
 
@@ -822,8 +847,7 @@
   function syncCards() {
     cardPairs.forEach(([card, cb]) => {
       card.classList.toggle("disabled", !cb.checked);
-      const icon = card.querySelector(".toggle-icon");
-      if (icon) icon.textContent = cb.checked ? "✓" : "·";
+      setToggleIcon(card, cb.checked);
     });
   }
 
@@ -844,7 +868,7 @@
     updateInputGutter();
   });
 
-  [optStrip, optJoin, optUnwrap, optCollapse, optTrim].forEach(cb => cb.addEventListener("change", () => {
+  [optStripTrailing, optRules, optJoin, optUnwrap, optCollapse, optTrim].forEach(cb => cb.addEventListener("change", () => {
     syncCards();
     clearTimeout(debounceTimer);
     update();
@@ -856,7 +880,7 @@
 
   function toggleButton(btn) {
     const active = btn.classList.toggle("active");
-    btn.querySelector(".toggle-icon").textContent = active ? "✓" : "·";
+    setToggleIcon(btn, active);
     return active;
   }
 

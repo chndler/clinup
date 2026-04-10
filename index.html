@@ -10,6 +10,7 @@
 
     /* colors */
     --bg-primary: #0d1117;
+    --bg-gutter: #0d1117;
     --bg-secondary: #161b22;
     --bg-tertiary: #21262d;
     --border-subtle: #21262d;
@@ -63,11 +64,12 @@
 
   :root[data-theme="light"] {
     color-scheme: light;
-    --bg-primary: #ffffff;
-    --bg-secondary: #f6f8fa;
+    --bg-primary: #f6f8fa;
+    --bg-gutter: #e8ecf0;
+    --bg-secondary: #f3f5f8;
     --bg-tertiary: #e1e4e8;
-    --border-subtle: #d8dee4;
-    --border: #afb8c1;
+    --border-subtle: #cdd4db;
+    --border: #a3abb5;
     --border-hover: #8c959f;
     --text-primary: #1f2328;
     --text-secondary: #24292f;
@@ -213,7 +215,7 @@
   .input-gutter {
     min-width: 2.5rem;
     padding: var(--space-sm) 0;
-    background: var(--bg-primary);
+    background: var(--bg-gutter);
     border-radius: var(--radius-md) 0 0 var(--radius-md);
     overflow: hidden;
     flex-shrink: 0;
@@ -255,7 +257,7 @@
     bottom: 0;
     left: 0;
     width: 2.5rem;
-    background: var(--bg-primary);
+    background: var(--bg-gutter);
     border-radius: var(--radius-md) 0 0 var(--radius-md);
     pointer-events: none;
   }
@@ -474,7 +476,7 @@
 
   .output-box.diff-mode .line-num,
   .output-box.diff-mode .diff-indicator {
-    background: var(--bg-primary);
+    background: var(--bg-gutter);
     position: relative;
   }
 

@@ -318,7 +318,7 @@
 
   .ws { color: var(--text-muted); opacity: 0.5; }
 
-  .output-controls {
+  .controls {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-md);
@@ -347,7 +347,6 @@
   }
 
   .diff-summary {
-    font-family: var(--font-mono);
     font-size: var(--font-size-xs);
     color: var(--text-faint);
   }
@@ -401,7 +400,7 @@
   <div>
     <div class="section-header">
       <label for="input">Input</label>
-      <div class="output-controls">
+      <div class="controls">
         <button class="toggle-btn active" id="toggle-input-lines" type="button" title="Show line numbers in the gutter">
           <span class="toggle-icon">✓</span> lines
         </button>
@@ -478,7 +477,7 @@
   <div>
     <div class="section-header">
       <label>Output</label>
-      <div class="output-controls">
+      <div class="controls">
         <button class="toggle-btn active" id="toggle-line-nums" type="button" title="Show line numbers in the gutter">
           <span class="toggle-icon">✓</span> lines
         </button>
@@ -872,6 +871,7 @@
   });
 
   output.addEventListener("copy", (e) => {
+    if (!isToggleActive(toggleWhitespace)) return;
     const sel = window.getSelection();
     if (sel.isCollapsed) return;
     const fragment = sel.getRangeAt(0).cloneContents();

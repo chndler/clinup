@@ -527,42 +527,27 @@
   let lastClean = "";
   let debounceTimer;
 
+  function unwrapParagraphs(text, trim) {
+    return text.split(/\n\s*\n/).map(para => {
+      const unwrapped = para.replace(/\n\s*/g, (match, offset) => {
+        const rest = para.slice(offset + match.length);
+        if (/^[-*+•] |^\d+[.)] |^#{1,6} /.test(rest)) return "\n";
+        const before = para.slice(0, offset);
+        const lastLine = before.substring(before.lastIndexOf("\n") + 1);
+        if (/^\s*(?:[⏺•]\s*)?#{1,6} /.test(lastLine)) return "\n";
+        return " ";
+      });
+      return trim ? unwrapped.trim() : unwrapped;
+    }).join("\n\n");
+  }
+
   function clean(text) {
     let result = text;
-
-    if (optStrip.checked) {
-      result = result.replace(/[^\S\n]+$/gm, "");
-    }
-
-    if (optJoin.checked) {
-      result = result.replace(/\\\s*\n\s*/g, " ");
-    }
-
-    if (optUnwrap.checked) {
-      const paragraphs = result.split(/\n\s*\n/);
-      result = paragraphs.map(para => {
-        // Unwrap lines, but preserve newlines before list items and headings
-        const unwrapped = para.replace(/\n\s*/g, (match, offset) => {
-          const rest = para.slice(offset + match.length);
-          if (/^[-*+•] |^\d+[.)] |^#{1,6} /.test(rest)) return "\n";
-          // Preserve newline after heading lines
-          const before = para.slice(0, offset);
-          const lastLine = before.substring(before.lastIndexOf("\n") + 1);
-          if (/^\s*(?:[⏺•]\s*)?#{1,6} /.test(lastLine)) return "\n";
-          return " ";
-        });
-        return optTrim.checked ? unwrapped.trim() : unwrapped;
-      }).join("\n\n");
-    }
-
-    if (optCollapse.checked) {
-      result = result.replace(/ {2,}/g, " ");
-    }
-
-    if (optTrim.checked) {
-      result = result.trim();
-    }
-
+    if (optStrip.checked)    result = result.replace(/[^\S\n]+$/gm, "");
+    if (optJoin.checked)     result = result.replace(/\\\s*\n\s*/g, " ");
+    if (optUnwrap.checked)   result = unwrapParagraphs(result, optTrim.checked);
+    if (optCollapse.checked) result = result.replace(/ {2,}/g, " ");
+    if (optTrim.checked)     result = result.trim();
     return result;
   }
 
@@ -730,18 +715,21 @@
     });
 
     output.replaceChildren(gutterBg, wrap);
+    updateDiffSummary(addedCount, removedCount);
+  }
 
+  function updateDiffSummary(added, removed) {
     diffSummary.innerHTML = "";
-    if (removedCount || addedCount) {
+    if (added || removed) {
       const addSpan = document.createElement("span");
       addSpan.style.color = "var(--diff-added-text)";
-      addSpan.textContent = "+" + addedCount;
+      addSpan.textContent = "+" + added;
       const remSpan = document.createElement("span");
       remSpan.style.color = "var(--diff-removed-text)";
-      remSpan.textContent = "-" + removedCount;
+      remSpan.textContent = "-" + removed;
+      remSpan.style.marginLeft = "var(--space-xs)";
       diffSummary.appendChild(addSpan);
       diffSummary.appendChild(document.createTextNode(" "));
-      remSpan.style.marginLeft = "var(--space-xs)";
       diffSummary.appendChild(remSpan);
     } else {
       diffSummary.textContent = "no changes";

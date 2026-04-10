@@ -100,7 +100,7 @@
     letter-spacing: 0.08em;
   }
 
-  textarea, .output-box {
+  .input-box, .output-box {
     width: 100%;
     background: var(--bg-secondary);
     border: 1px solid var(--border-subtle);
@@ -112,13 +112,49 @@
     transition: border-color 0.15s;
   }
 
-  textarea:focus, .output-box:focus { border-color: var(--accent); outline: none; }
+  .input-box:focus-within, .output-box:focus { border-color: var(--accent); outline: none; }
 
-  textarea {
-    display: block;
+  .input-box {
+    display: flex;
     min-height: 160px;
-    padding: var(--space-sm) var(--space-sm);
+    overflow: hidden;
     resize: vertical;
+  }
+
+  .input-box textarea {
+    flex: 1;
+    width: 0;
+    min-height: 0;
+    background: none;
+    border: none;
+    border-radius: 0;
+    resize: none;
+    outline: none;
+    padding: var(--space-sm);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-lg);
+    line-height: 1.5;
+  }
+
+  .input-gutter {
+    min-width: 2.5rem;
+    padding: var(--space-sm) 0;
+    background: var(--bg-primary);
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .input-box.no-line-nums .input-gutter { display: none; }
+
+  .input-gutter .line-num {
+    text-align: right;
+    padding: 0 var(--space-sm);
+    color: var(--text-faint);
+    font-size: var(--font-size-lg);
+    line-height: 1.5;
+    user-select: none;
   }
 
   .output-box {
@@ -395,8 +431,16 @@
   <div>
     <div class="section-header">
       <label for="input">Input</label>
+      <div class="output-controls">
+        <button class="toggle-btn active" id="toggle-input-lines" type="button" title="Show line numbers in the gutter">
+          <span class="toggle-icon">✓</span> lines
+        </button>
+      </div>
     </div>
-    <textarea id="input" placeholder="Paste CLI commands or text here..." spellcheck="false" autofocus></textarea>
+    <div class="input-box">
+      <div class="input-gutter" id="input-gutter"><div class="line-num">1</div></div>
+      <textarea id="input" placeholder="Paste CLI commands or text here..." spellcheck="false" autofocus></textarea>
+    </div>
     <div class="section-footer">
       <button class="copy-btn" id="clear-btn" title="Clear input">Clear</button>
     </div>
@@ -502,6 +546,9 @@
   const toggleWrap       = document.getElementById("toggle-wrap");
   const toggleDiff       = document.getElementById("toggle-diff");
   const diffSummary      = document.getElementById("diff-summary");
+  const inputGutter      = document.getElementById("input-gutter");
+  const toggleInputLines = document.getElementById("toggle-input-lines");
+  const inputBox         = document.querySelector(".input-box");
   const optionCards = document.querySelectorAll(".option-card");
 
   let lastClean = "";
@@ -581,6 +628,15 @@
 
   const gutterBg = output.querySelector(".output-gutter-bg");
   const placeholder = output.querySelector(".output-placeholder");
+
+  function updateInputGutter() {
+    const count = input.value.split("\n").length;
+    const nums = [];
+    for (let i = 1; i <= count; i++) {
+      nums.push('<div class="line-num">' + i + '</div>');
+    }
+    inputGutter.innerHTML = nums.join("");
+  }
 
   function renderLineContent(container, line) {
     if (!isToggleActive(toggleWhitespace)) {
@@ -734,13 +790,21 @@
     });
   }
 
-  input.addEventListener("input", debouncedUpdate);
+  input.addEventListener("input", () => {
+    updateInputGutter();
+    debouncedUpdate();
+  });
+
+  input.addEventListener("scroll", () => {
+    inputGutter.scrollTop = input.scrollTop;
+  });
 
   clearBtn.addEventListener("click", () => {
     input.value = "";
     input.focus();
     clearTimeout(debounceTimer);
     update();
+    updateInputGutter();
   });
 
   [optStrip, optJoin, optUnwrap, optCollapse, optTrim].forEach(cb => cb.addEventListener("change", () => {
@@ -758,6 +822,11 @@
     btn.querySelector(".toggle-icon").textContent = active ? "✓" : "·";
     return active;
   }
+
+  toggleInputLines.addEventListener("click", () => {
+    const active = toggleButton(toggleInputLines);
+    inputBox.classList.toggle("no-line-nums", !active);
+  });
 
   toggleLineNums.addEventListener("click", () => {
     const active = toggleButton(toggleLineNums);

@@ -144,6 +144,7 @@
 
   .theme-switch {
     display: flex;
+    background: var(--bg-tertiary);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
     overflow: hidden;
@@ -156,13 +157,13 @@
     font-family: var(--font-mono);
     font-size: var(--font-size-sm);
     padding: 0.125rem var(--space-sm);
+    border-radius: var(--radius-sm);
     cursor: pointer;
     user-select: none;
     transition: background 0.15s, color 0.15s;
   }
   .theme-option:hover:not(.active) { color: var(--text-muted); }
-  .theme-option:not(.active) { background: var(--bg-tertiary); }
-  .theme-option.active { color: var(--text-secondary); cursor: default; }
+  .theme-option.active { color: var(--text-secondary); background: var(--bg-primary); cursor: default; }
 
   .container {
     width: 100%;

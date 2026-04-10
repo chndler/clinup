@@ -46,10 +46,12 @@
 
     /* diff */
     --diff-removed-bg: rgba(248, 81, 73, 0.10);
+    --diff-removed-bg-hover: rgba(248, 81, 73, 0.15);
     --diff-removed-gutter-bg: rgba(248, 81, 73, 0.20);
     --diff-removed-text: #ffa198;
     --diff-removed-gutter: #f85149;
     --diff-added-bg: rgba(63, 185, 80, 0.10);
+    --diff-added-bg-hover: rgba(63, 185, 80, 0.15);
     --diff-added-gutter-bg: rgba(63, 185, 80, 0.20);
     --diff-added-text: #7ee787;
     --diff-added-gutter: #3fb950;
@@ -353,6 +355,10 @@
     background: var(--diff-removed-bg);
   }
 
+  .output-line.diff-removed:hover {
+    background: var(--diff-removed-bg-hover);
+  }
+
   .output-line.diff-removed .line-num {
     background: var(--diff-removed-gutter-bg);
     color: var(--diff-removed-gutter);
@@ -364,6 +370,10 @@
 
   .output-line.diff-added {
     background: var(--diff-added-bg);
+  }
+
+  .output-line.diff-added:hover {
+    background: var(--diff-added-bg-hover);
   }
 
   .output-line.diff-added .line-num {

@@ -45,6 +45,9 @@
     --radius-sm: 2px;
     --radius-md: 3px;
 
+    /* layout */
+    --max-width: 800px;
+
     /* diff */
     --diff-removed-bg: rgba(248, 81, 73, 0.10);
     --diff-removed-bg-hover: rgba(248, 81, 73, 0.15);
@@ -104,7 +107,7 @@
 
   .site-header {
     width: 100%;
-    max-width: 800px;
+    max-width: var(--max-width);
     display: flex;
     justify-content: space-between;
     align-items: baseline;
@@ -161,7 +164,7 @@
 
   .container {
     width: 100%;
-    max-width: 800px;
+    max-width: var(--max-width);
     display: flex;
     flex-direction: column;
     gap: var(--space-sm);
@@ -287,7 +290,6 @@
   .output-box.empty .output-placeholder { color: var(--text-faint); }
 
   .output-box.no-line-nums .line-num { display: none; }
-  .output-box.no-line-nums .line-text { padding-left: var(--space-sm); }
   .output-box.no-wrap .line-text { white-space: pre; }
 
   .section-footer {
@@ -303,7 +305,7 @@
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
     color: var(--text-muted);
-    padding: var(--radius-sm) var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
     font-family: var(--font-mono);
     font-size: var(--font-size-sm);
     cursor: pointer;
@@ -422,7 +424,7 @@
 
   .option-example code {
     background: var(--bg-primary);
-    padding: var(--radius-sm) var(--space-xs);
+    padding: var(--space-xs) var(--space-xs);
     border-radius: var(--radius-sm);
     white-space: nowrap;
     overflow: hidden;
@@ -521,8 +523,8 @@
     <p class="subtitle">Paste CLI output, get clean text.</p>
   </div>
   <div class="theme-switch" role="radiogroup" aria-label="Color theme">
-    <button class="theme-option" data-theme="dark" type="button">☾ dark</button>
-    <button class="theme-option" data-theme="light" type="button">☀ light</button>
+    <button class="theme-option" data-theme="dark" type="button" role="radio">☾ dark</button>
+    <button class="theme-option" data-theme="light" type="button" role="radio">☀ light</button>
   </div>
 </header>
 
@@ -532,10 +534,10 @@
       <label for="input">Input</label>
       <div class="controls">
         <button class="toggle-btn active" id="toggle-input-lines" type="button" title="Show line numbers in the gutter">
-          <span class="toggle-icon">✓</span> lines
+          <span class="toggle-icon" aria-hidden="true">✓</span> lines
         </button>
         <button class="toggle-btn active" id="toggle-input-wrap" type="button" title="Wrap long lines to fit the viewport">
-          <span class="toggle-icon">✓</span> wrap
+          <span class="toggle-icon" aria-hidden="true">✓</span> wrap
         </button>
       </div>
     </div>
@@ -552,7 +554,7 @@
     <div class="options">
     <div class="option-card">
       <label class="option-label">
-        <input type="checkbox" id="opt-strip-rules" checked><span class="toggle-icon">✓</span> strip-rules
+        <input type="checkbox" id="opt-strip-rules" checked><span class="toggle-icon" aria-hidden="true">✓</span> strip-rules
       </label>
       <div class="option-example">
         <code>────────────</code>
@@ -562,7 +564,7 @@
     </div>
     <div class="option-card">
       <label class="option-label">
-        <input type="checkbox" id="opt-strip-trailing" checked><span class="toggle-icon">✓</span> strip-trailing
+        <input type="checkbox" id="opt-strip-trailing" checked><span class="toggle-icon" aria-hidden="true">✓</span> strip-trailing
       </label>
       <div class="option-example">
         <code>hello&nbsp; &nbsp; &nbsp;\n</code>
@@ -572,7 +574,7 @@
     </div>
     <div class="option-card">
       <label class="option-label">
-        <input type="checkbox" id="opt-join" checked><span class="toggle-icon">✓</span> join-continuations
+        <input type="checkbox" id="opt-join" checked><span class="toggle-icon" aria-hidden="true">✓</span> join-continuations
       </label>
       <div class="option-example">
         <code>cmd \\n    --flag</code>
@@ -582,7 +584,7 @@
     </div>
     <div class="option-card">
       <label class="option-label">
-        <input type="checkbox" id="opt-unwrap" checked><span class="toggle-icon">✓</span> unwrap-paragraphs
+        <input type="checkbox" id="opt-unwrap" checked><span class="toggle-icon" aria-hidden="true">✓</span> unwrap-paragraphs
       </label>
       <div class="option-example">
         <code>line one\n  continues here</code>
@@ -592,7 +594,7 @@
     </div>
     <div class="option-card">
       <label class="option-label">
-        <input type="checkbox" id="opt-collapse" checked><span class="toggle-icon">✓</span> collapse-spaces
+        <input type="checkbox" id="opt-collapse" checked><span class="toggle-icon" aria-hidden="true">✓</span> collapse-spaces
       </label>
       <div class="option-example">
         <code>too&nbsp; &nbsp;many&nbsp; &nbsp;spaces</code>
@@ -602,7 +604,7 @@
     </div>
     <div class="option-card">
       <label class="option-label">
-        <input type="checkbox" id="opt-trim" checked><span class="toggle-icon">✓</span> trim-outer
+        <input type="checkbox" id="opt-trim" checked><span class="toggle-icon" aria-hidden="true">✓</span> trim-outer
       </label>
       <div class="option-example">
         <code>&nbsp; &nbsp;hello world&nbsp; &nbsp;</code>
@@ -620,20 +622,20 @@
       <span class="section-label">Output</span>
       <div class="controls">
         <button class="toggle-btn" id="toggle-diff" type="button" title="Show what changed between input and output">
-          <span class="toggle-icon">·</span> diff
+          <span class="toggle-icon" aria-hidden="true">·</span> diff
         </button>
         <button class="toggle-btn" id="toggle-whitespace" type="button" title="Reveal spaces (·) and tabs (→)">
-          <span class="toggle-icon">·</span> ws
+          <span class="toggle-icon" aria-hidden="true">·</span> ws
         </button>
         <button class="toggle-btn active" id="toggle-line-nums" type="button" title="Show line numbers in the gutter">
-          <span class="toggle-icon">✓</span> lines
+          <span class="toggle-icon" aria-hidden="true">✓</span> lines
         </button>
         <button class="toggle-btn active" id="toggle-wrap" type="button" title="Wrap long lines to fit the viewport">
-          <span class="toggle-icon">✓</span> wrap
+          <span class="toggle-icon" aria-hidden="true">✓</span> wrap
         </button>
       </div>
     </div>
-    <div id="output" class="output-box empty" tabindex="0">
+    <div id="output" class="output-box empty" tabindex="0" role="region" aria-label="Cleaned output">
       <div class="output-gutter-bg"></div>
       <span class="output-placeholder">Cleaned text will appear here</span>
     </div>
@@ -661,6 +663,7 @@
     btn.addEventListener("click", () => {
       document.documentElement.dataset.theme = btn.dataset.theme;
       localStorage.setItem("theme", btn.dataset.theme);
+      inputFontSynced = false;
       syncThemeSwitch();
     });
   });
@@ -688,7 +691,9 @@
   const optionCards = document.querySelectorAll(".option-card");
 
   let lastClean = "";
+  let lastRaw = "";
   let debounceTimer;
+  let inputFontSynced = false;
 
   function setToggleIcon(el, active) {
     const icon = el.querySelector(".toggle-icon");
@@ -769,7 +774,7 @@
 
     let heights;
     if (wrapActive) {
-      if (!inputMirror._fontSynced) {
+      if (!inputFontSynced) {
         const cs = getComputedStyle(input);
         inputMirror.style.fontFamily = cs.fontFamily;
         inputMirror.style.fontSize = cs.fontSize;
@@ -777,7 +782,7 @@
         inputMirror.style.letterSpacing = cs.letterSpacing;
         inputMirror.style.paddingLeft = cs.paddingLeft;
         inputMirror.style.paddingRight = cs.paddingRight;
-        inputMirror._fontSynced = true;
+        inputFontSynced = true;
       }
       inputMirror.style.width = input.clientWidth + "px";
       const frag = document.createDocumentFragment();
@@ -917,7 +922,7 @@
     const diffActive = isToggleActive(toggleDiff);
     output.classList.toggle("diff-mode", diffActive);
     if (diffActive) {
-      renderDiffLines(input.value, lastClean);
+      renderDiffLines(lastRaw, lastClean);
       diffSummary.style.display = "";
     } else {
       renderLines(lastClean);
@@ -928,15 +933,19 @@
   function update() {
     const raw = input.value;
     if (!/\S/.test(raw)) {
-      output.replaceChildren(gutterBg, placeholder);
-      output.classList.add("empty");
-      output.classList.remove("diff-mode");
-      lastClean = "";
-      diffSummary.textContent = "";
-      diffSummary.style.display = "none";
+      if (lastClean) {
+        output.replaceChildren(gutterBg, placeholder);
+        output.classList.add("empty");
+        output.classList.remove("diff-mode");
+        lastClean = "";
+        lastRaw = "";
+        diffSummary.textContent = "";
+        diffSummary.style.display = "none";
+      }
       return;
     }
     output.classList.remove("empty");
+    lastRaw = raw;
     const cleaned = clean(raw);
     if (cleaned === lastClean) return;
     lastClean = cleaned;
@@ -987,12 +996,16 @@
   function toggleButton(btn) {
     const active = btn.classList.toggle("active");
     setToggleIcon(btn, active);
+    btn.setAttribute("aria-pressed", active);
     return active;
   }
 
-  toggleInputLines.addEventListener("click", () => {
-    const active = toggleButton(toggleInputLines);
-    inputBox.classList.toggle("no-line-nums", !active);
+  [[toggleInputLines, inputBox, "no-line-nums"],
+   [toggleLineNums, output, "no-line-nums"],
+   [toggleWrap, output, "no-wrap"]].forEach(([btn, target, cls]) => {
+    btn.addEventListener("click", () => {
+      target.classList.toggle(cls, !toggleButton(btn));
+    });
   });
 
   toggleInputWrap.addEventListener("click", () => {
@@ -1002,27 +1015,18 @@
     updateInputGutter(true);
   });
 
-  toggleLineNums.addEventListener("click", () => {
-    const active = toggleButton(toggleLineNums);
-    output.classList.toggle("no-line-nums", !active);
-  });
-
-  toggleWrap.addEventListener("click", () => {
-    const active = toggleButton(toggleWrap);
-    output.classList.toggle("no-wrap", !active);
-  });
-
-  toggleWhitespace.addEventListener("click", () => {
-    toggleButton(toggleWhitespace);
-    if (lastClean) renderOutput();
-  });
-
-  toggleDiff.addEventListener("click", () => {
-    toggleButton(toggleDiff);
-    if (lastClean) renderOutput();
+  [toggleWhitespace, toggleDiff].forEach(btn => {
+    btn.addEventListener("click", () => {
+      toggleButton(btn);
+      if (lastClean) renderOutput();
+    });
   });
 
   syncCards();
+
+  document.querySelectorAll(".toggle-btn").forEach(btn => {
+    btn.setAttribute("aria-pressed", btn.classList.contains("active"));
+  });
 
   output.addEventListener("keydown", (e) => {
     if (e.key === "a" && (e.metaKey || e.ctrlKey) && !e.shiftKey) {

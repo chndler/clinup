@@ -1,6 +1,6 @@
 # clinup
 
-**[Try it live](https://chndler.github.io/clinup/)** or open `index.html` locally.
+**[Try it live](https://chndler.github.io/clinup/)** or open `index.html` locally.  
 **[View source on GitHub](https://github.com/chndler/clinup)** 
 
 A single-file vanilla HTML/JS tool for cleaning up text copied from CLI output.

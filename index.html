@@ -149,7 +149,7 @@
   .input-box.no-line-nums .input-gutter { display: none; }
   .input-box.no-wrap textarea { white-space: pre; overflow-wrap: normal; }
 
-  .input-gutter .line-num {
+  .line-num {
     text-align: right;
     padding: 0 var(--space-sm);
     color: var(--text-faint);
@@ -192,10 +192,6 @@
 
   .output-line .line-num {
     min-width: 2.5rem;
-    text-align: right;
-    padding: 0 var(--space-sm);
-    color: var(--text-faint);
-    user-select: none;
     flex-shrink: 0;
     position: relative;
   }
@@ -204,7 +200,7 @@
     flex: 1;
     white-space: pre-wrap;
     word-break: break-all;
-    padding: 0 var(--space-sm) 0 var(--space-sm);
+    padding: 0 var(--space-sm);
   }
 
   .section-header {
@@ -232,7 +228,7 @@
     margin-top: var(--space-xs);
   }
 
-  .copy-btn {
+  .action-btn {
     background: var(--bg-tertiary);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
@@ -245,8 +241,8 @@
     white-space: nowrap;
   }
 
-  .copy-btn:hover { background: var(--border); color: var(--text-primary); }
-  .copy-btn.copied { color: var(--success); border-color: var(--success); }
+  .action-btn:hover { background: var(--border); color: var(--text-primary); }
+  .action-btn.copied { color: var(--success); border-color: var(--success); }
 
   .options {
     display: grid;
@@ -378,49 +374,22 @@
     font-size: var(--font-size-sm);
   }
 
-  .output-line.diff-removed .diff-indicator {
-    background: var(--diff-removed-gutter-bg);
-    color: var(--diff-removed-gutter);
-  }
-
-  .output-line.diff-added .diff-indicator {
-    background: var(--diff-added-gutter-bg);
-    color: var(--diff-added-gutter);
-  }
-
   .output-line.diff-removed {
-    background: var(--diff-removed-bg);
+    --diff-bg: var(--diff-removed-bg); --diff-bg-hover: var(--diff-removed-bg-hover);
+    --diff-gutter-bg: var(--diff-removed-gutter-bg); --diff-gutter-color: var(--diff-removed-gutter);
+    --diff-text: var(--diff-removed-text);
   }
-
-  .output-line.diff-removed:hover {
-    background: var(--diff-removed-bg-hover);
-  }
-
-  .output-line.diff-removed .line-num {
-    background: var(--diff-removed-gutter-bg);
-    color: var(--diff-removed-gutter);
-  }
-
-  .output-line.diff-removed .line-text {
-    color: var(--diff-removed-text);
-  }
-
   .output-line.diff-added {
-    background: var(--diff-added-bg);
+    --diff-bg: var(--diff-added-bg); --diff-bg-hover: var(--diff-added-bg-hover);
+    --diff-gutter-bg: var(--diff-added-gutter-bg); --diff-gutter-color: var(--diff-added-gutter);
+    --diff-text: var(--diff-added-text);
   }
 
-  .output-line.diff-added:hover {
-    background: var(--diff-added-bg-hover);
-  }
-
-  .output-line.diff-added .line-num {
-    background: var(--diff-added-gutter-bg);
-    color: var(--diff-added-gutter);
-  }
-
-  .output-line.diff-added .line-text {
-    color: var(--diff-added-text);
-  }
+  .output-line:is(.diff-removed, .diff-added) { background: var(--diff-bg); }
+  .output-line:is(.diff-removed, .diff-added):hover { background: var(--diff-bg-hover); }
+  .output-line:is(.diff-removed, .diff-added) .line-num,
+  .output-line:is(.diff-removed, .diff-added) .diff-indicator { background: var(--diff-gutter-bg); color: var(--diff-gutter-color); }
+  .output-line:is(.diff-removed, .diff-added) .line-text { color: var(--diff-text); }
 </style>
 </head>
 <body>
@@ -446,7 +415,7 @@
       <textarea id="input" placeholder="Paste CLI commands or text here..." spellcheck="false" autofocus></textarea>
     </div>
     <div class="section-footer">
-      <button class="copy-btn" id="clear-btn" title="Clear input">Clear</button>
+      <button class="action-btn" id="clear-btn" title="Clear input">Clear</button>
     </div>
   </div>
 
@@ -530,7 +499,7 @@
     </div>
     <div class="section-footer">
       <div id="diff-summary" class="diff-summary" style="display:none"></div>
-      <button class="copy-btn" id="copy-btn" title="Copy to clipboard">Copy</button>
+      <button class="action-btn" id="copy-btn" title="Copy to clipboard">Copy</button>
     </div>
   </div>
 </div>
@@ -601,8 +570,6 @@
   function computeDiff(oldLines, newLines) {
     const m = oldLines.length;
     const n = newLines.length;
-
-    // Build LCS table
     const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
     for (let i = 1; i <= m; i++) {
       for (let j = 1; j <= n; j++) {
@@ -611,8 +578,6 @@
           : Math.max(dp[i - 1][j], dp[i][j - 1]);
       }
     }
-
-    // Backtrack to produce diff entries
     const entries = [];
     let i = m, j = n;
     while (i > 0 || j > 0) {
@@ -635,7 +600,7 @@
   const placeholder = output.querySelector(".output-placeholder");
 
   const inputMirror = document.createElement("div");
-  inputMirror.style.cssText = "position:absolute;visibility:hidden;white-space:pre-wrap;overflow-wrap:break-word;box-sizing:border-box;";
+  inputMirror.style.cssText = "position:fixed;left:-9999px;white-space:pre-wrap;overflow-wrap:break-word;box-sizing:border-box;";
   document.body.appendChild(inputMirror);
 
   function updateInputGutter() {
@@ -653,19 +618,29 @@
       inputMirror.style.paddingRight = cs.paddingRight;
     }
 
+    let heights;
+    if (wrapActive) {
+      heights = lines.map(line => {
+        inputMirror.textContent = line || "\u00A0";
+        return inputMirror.offsetHeight;
+      });
+    }
+
     const frags = [];
     for (let i = 0; i < lines.length; i++) {
-      let style = "";
-      if (wrapActive) {
-        inputMirror.textContent = lines[i] || "\u00A0";
-        style = ' style="height:' + inputMirror.offsetHeight + 'px"';
-      }
+      const style = heights ? ' style="height:' + heights[i] + 'px"' : "";
       frags.push('<div class="line-num"' + style + '>' + (i + 1) + '</div>');
     }
     inputGutter.innerHTML = frags.join("");
   }
 
-  new ResizeObserver(updateInputGutter).observe(input);
+  let gutterRafPending = false;
+  new ResizeObserver(() => {
+    if (!gutterRafPending) {
+      gutterRafPending = true;
+      requestAnimationFrame(() => { updateInputGutter(); gutterRafPending = false; });
+    }
+  }).observe(input);
 
   function renderLineContent(container, line) {
     if (!isToggleActive(toggleWhitespace)) {
@@ -676,15 +651,11 @@
     const parts = line.split(/( +|\t+)/);
     for (const part of parts) {
       if (!part) continue;
-      if (/^ +$/.test(part)) {
+      const wsChar = part[0] === " " ? "\u00B7" : part[0] === "\t" ? "\u2192" : null;
+      if (wsChar) {
         const span = document.createElement("span");
         span.className = "ws";
-        span.textContent = "\u00B7".repeat(part.length);
-        container.appendChild(span);
-      } else if (/^\t+$/.test(part)) {
-        const span = document.createElement("span");
-        span.className = "ws";
-        span.textContent = "\u2192".repeat(part.length);
+        span.textContent = wsChar.repeat(part.length);
         container.appendChild(span);
       } else {
         container.appendChild(document.createTextNode(part));
@@ -722,10 +693,10 @@
 
     const wrap = document.createElement("div");
     wrap.className = "output-lines-wrap";
-    let oldNum = 0, newNum = 0;
+    let oldNum = 0, newNum = 0, removedCount = 0, addedCount = 0;
     entries.forEach(entry => {
-      if (entry.type === "removed") oldNum++;
-      else if (entry.type === "added") newNum++;
+      if (entry.type === "removed") { oldNum++; removedCount++; }
+      else if (entry.type === "added") { newNum++; addedCount++; }
       else { oldNum++; newNum++; }
 
       const row = document.createElement("div");
@@ -758,17 +729,14 @@
 
     output.replaceChildren(gutterBg, wrap);
 
-    // Update diff summary
-    const removed = entries.filter(e => e.type === "removed").length;
-    const added = entries.filter(e => e.type === "added").length;
     diffSummary.innerHTML = "";
-    if (removed || added) {
+    if (removedCount || addedCount) {
       const addSpan = document.createElement("span");
       addSpan.style.color = "var(--diff-added-text)";
-      addSpan.textContent = "+" + added;
+      addSpan.textContent = "+" + addedCount;
       const remSpan = document.createElement("span");
       remSpan.style.color = "var(--diff-removed-text)";
-      remSpan.textContent = "-" + removed;
+      remSpan.textContent = "-" + removedCount;
       diffSummary.appendChild(addSpan);
       diffSummary.appendChild(document.createTextNode(" "));
       remSpan.style.marginLeft = "var(--space-xs)";

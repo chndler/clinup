@@ -372,7 +372,6 @@
     border-radius: var(--radius-md);
     cursor: pointer;
     user-select: none;
-    transition: border-color 0.15s, background 0.15s;
   }
 
   .option-card:hover, .toggle-btn:hover { border-color: var(--border-hover); }
@@ -426,7 +425,7 @@
 
   .option-example code {
     background: var(--bg-primary);
-    padding: var(--space-xs) var(--space-xs);
+    padding: var(--space-xs);
     border-radius: var(--radius-sm);
     white-space: nowrap;
     overflow: hidden;
@@ -535,10 +534,10 @@
     <div class="section-header">
       <label for="input">Input</label>
       <div class="controls">
-        <button class="toggle-btn active" id="toggle-input-lines" type="button" title="Show line numbers in the gutter">
+        <button class="toggle-btn active" id="toggle-input-lines" type="button" title="Show line numbers in the gutter" aria-pressed="true">
           <span class="toggle-icon" aria-hidden="true">✓</span> lines
         </button>
-        <button class="toggle-btn active" id="toggle-input-wrap" type="button" title="Wrap long lines to fit the viewport">
+        <button class="toggle-btn active" id="toggle-input-wrap" type="button" title="Wrap long lines to fit the viewport" aria-pressed="true">
           <span class="toggle-icon" aria-hidden="true">✓</span> wrap
         </button>
       </div>
@@ -623,16 +622,16 @@
     <div class="section-header">
       <span class="section-label">Output</span>
       <div class="controls">
-        <button class="toggle-btn" id="toggle-diff" type="button" title="Show what changed between input and output">
+        <button class="toggle-btn" id="toggle-diff" type="button" title="Show what changed between input and output" aria-pressed="false">
           <span class="toggle-icon" aria-hidden="true">·</span> diff
         </button>
-        <button class="toggle-btn" id="toggle-whitespace" type="button" title="Reveal spaces (·) and tabs (→)">
+        <button class="toggle-btn" id="toggle-whitespace" type="button" title="Reveal spaces (·) and tabs (→)" aria-pressed="false">
           <span class="toggle-icon" aria-hidden="true">·</span> ws
         </button>
-        <button class="toggle-btn active" id="toggle-line-nums" type="button" title="Show line numbers in the gutter">
+        <button class="toggle-btn active" id="toggle-line-nums" type="button" title="Show line numbers in the gutter" aria-pressed="true">
           <span class="toggle-icon" aria-hidden="true">✓</span> lines
         </button>
-        <button class="toggle-btn active" id="toggle-wrap" type="button" title="Wrap long lines to fit the viewport">
+        <button class="toggle-btn active" id="toggle-wrap" type="button" title="Wrap long lines to fit the viewport" aria-pressed="true">
           <span class="toggle-icon" aria-hidden="true">✓</span> wrap
         </button>
       </div>
@@ -696,6 +695,7 @@
   let lastRaw = "";
   let debounceTimer;
   let inputFontSynced = false;
+  let cachedDiff = null;
 
   function setToggleIcon(el, active) {
     const icon = el.querySelector(".toggle-icon");
@@ -706,7 +706,7 @@
     return text.split(/\n\s*\n/).map(para => {
       const unwrapped = para.replace(/\n\s*/g, (match, offset) => {
         const rest = para.slice(offset + match.length);
-        if (/^[-*+•] |^\d+[.)] |^#{1,6} /.test(rest)) return "\n";
+        if (/^[-*+•⏺] |^\d+[.)] |^#{1,6} /.test(rest)) return "\n";
         const before = para.slice(0, offset);
         const lastLine = before.substring(before.lastIndexOf("\n") + 1);
         if (/^\s*(?:[⏺•]\s*)?#{1,6} /.test(lastLine)) return "\n";
@@ -797,21 +797,33 @@
       heights = Array.from(inputMirror.children, c => c.offsetHeight);
     }
 
-    const frags = [];
+    const gutterFrag = document.createDocumentFragment();
     for (let i = 0; i < lines.length; i++) {
-      const style = heights ? ' style="height:' + heights[i] + 'px"' : "";
-      frags.push('<div class="line-num"' + style + '>' + (i + 1) + '</div>');
+      const el = document.createElement("div");
+      el.className = "line-num";
+      if (heights) el.style.height = heights[i] + "px";
+      el.textContent = i + 1;
+      gutterFrag.appendChild(el);
     }
-    inputGutter.innerHTML = frags.join("");
+    inputGutter.replaceChildren(gutterFrag);
   }
 
   let gutterRafPending = false;
-  new ResizeObserver(() => {
+  let gutterRafForce = false;
+
+  function scheduleGutterUpdate(force) {
+    if (force) gutterRafForce = true;
     if (!gutterRafPending) {
       gutterRafPending = true;
-      requestAnimationFrame(() => { updateInputGutter(true); gutterRafPending = false; });
+      requestAnimationFrame(() => {
+        updateInputGutter(gutterRafForce);
+        gutterRafPending = false;
+        gutterRafForce = false;
+      });
     }
-  }).observe(input);
+  }
+
+  new ResizeObserver(() => scheduleGutterUpdate(true)).observe(input);
 
   function renderLineContent(container, line) {
     if (!isToggleActive(toggleWhitespace)) {
@@ -858,17 +870,26 @@
     output.replaceChildren(gutterBg, wrap);
   }
 
+  function getDiff(rawText, cleanText) {
+    if (cachedDiff && cachedDiff.raw === rawText && cachedDiff.clean === cleanText) {
+      return cachedDiff;
+    }
+    const entries = computeDiff(rawText.split("\n"), cleanText.split("\n"));
+    let added = 0, removed = 0;
+    entries.forEach(e => { if (e.type === "added") added++; else if (e.type === "removed") removed++; });
+    cachedDiff = { raw: rawText, clean: cleanText, entries, added, removed };
+    return cachedDiff;
+  }
+
   function renderDiffLines(rawText, cleanText) {
-    const oldLines = rawText.split("\n");
-    const newLines = cleanText.split("\n");
-    const entries = computeDiff(oldLines, newLines);
+    const diff = getDiff(rawText, cleanText);
 
     const wrap = document.createElement("div");
     wrap.className = "output-lines-wrap";
-    let oldNum = 0, newNum = 0, removedCount = 0, addedCount = 0;
-    entries.forEach(entry => {
-      if (entry.type === "removed") { oldNum++; removedCount++; }
-      else if (entry.type === "added") { newNum++; addedCount++; }
+    let oldNum = 0, newNum = 0;
+    diff.entries.forEach(entry => {
+      if (entry.type === "removed") oldNum++;
+      else if (entry.type === "added") newNum++;
       else { oldNum++; newNum++; }
 
       const row = document.createElement("div");
@@ -900,7 +921,7 @@
     });
 
     output.replaceChildren(gutterBg, wrap);
-    updateDiffSummary(addedCount, removedCount);
+    updateDiffSummary(diff.added, diff.removed);
   }
 
   function updateDiffSummary(added, removed) {
@@ -941,6 +962,7 @@
         output.classList.remove("diff-mode");
         lastClean = "";
         lastRaw = "";
+        cachedDiff = null;
         diffSummary.textContent = "";
         diffSummary.style.display = "none";
       }
@@ -977,7 +999,7 @@
   });
 
   input.addEventListener("input", () => {
-    updateInputGutter();
+    scheduleGutterUpdate(false);
     debouncedUpdate();
   });
 
@@ -1026,10 +1048,6 @@
 
   syncCards();
 
-  document.querySelectorAll(".toggle-btn").forEach(btn => {
-    btn.setAttribute("aria-pressed", btn.classList.contains("active"));
-  });
-
   output.addEventListener("keydown", (e) => {
     if (e.key === "a" && (e.metaKey || e.ctrlKey) && !e.shiftKey) {
       e.preventDefault();
@@ -1059,7 +1077,7 @@
   });
 
   function copyText(text) {
-    // navigator.clipboard requires HTTPS/localhost — falls back for file:// URLs
+    // Secure context required — falls back to execCommand for file:// URLs
     if (navigator.clipboard && window.isSecureContext) {
       return navigator.clipboard.writeText(text);
     }

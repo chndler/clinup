@@ -263,7 +263,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-right: auto;
+    width: fit-content;
     margin-left: var(--space-md);
   }
 
@@ -478,11 +478,9 @@
       <div class="input-gutter" id="input-gutter"><div class="line-num">1</div></div>
       <textarea id="input" placeholder="Paste CLI commands or text here..." spellcheck="false" autofocus></textarea>
     </div>
-    <div class="section-footer">
-      <div class="pipeline-connector"></div>
-      <button class="action-btn" id="clear-btn" title="Clear input">Clear</button>
-    </div>
   </div>
+
+  <div class="pipeline-connector"></div>
 
   <div class="transforms-wrap">
     <span class="section-label">Transforms</span>
@@ -586,7 +584,6 @@
   const input       = document.getElementById("input");
   const output      = document.getElementById("output");
   const copyBtn     = document.getElementById("copy-btn");
-  const clearBtn    = document.getElementById("clear-btn");
   const optStripTrailing = document.getElementById("opt-strip-trailing");
   const optRules         = document.getElementById("opt-strip-rules");
   const optJoin     = document.getElementById("opt-join");
@@ -881,14 +878,6 @@
 
   input.addEventListener("scroll", () => {
     inputGutter.scrollTop = input.scrollTop;
-  });
-
-  clearBtn.addEventListener("click", () => {
-    input.value = "";
-    input.focus();
-    clearTimeout(debounceTimer);
-    update();
-    updateInputGutter();
   });
 
   [optStripTrailing, optRules, optJoin, optUnwrap, optCollapse, optTrim].forEach(cb => cb.addEventListener("change", () => {

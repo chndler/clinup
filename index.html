@@ -603,10 +603,16 @@
   inputMirror.style.cssText = "position:fixed;left:-9999px;white-space:pre-wrap;overflow-wrap:break-word;box-sizing:border-box;";
   document.body.appendChild(inputMirror);
 
-  function updateInputGutter() {
+  let lastGutterCount = 1;
+
+  function updateInputGutter(force) {
     const lines = input.value.split("\n");
     const wrapActive = isToggleActive(toggleInputWrap);
 
+    if (!wrapActive && !force && lines.length === lastGutterCount) return;
+    lastGutterCount = lines.length;
+
+    let heights;
     if (wrapActive) {
       const cs = getComputedStyle(input);
       inputMirror.style.fontFamily = cs.fontFamily;
@@ -616,10 +622,6 @@
       inputMirror.style.width = input.clientWidth + "px";
       inputMirror.style.paddingLeft = cs.paddingLeft;
       inputMirror.style.paddingRight = cs.paddingRight;
-    }
-
-    let heights;
-    if (wrapActive) {
       heights = lines.map(line => {
         inputMirror.textContent = line || "\u00A0";
         return inputMirror.offsetHeight;
@@ -638,7 +640,7 @@
   new ResizeObserver(() => {
     if (!gutterRafPending) {
       gutterRafPending = true;
-      requestAnimationFrame(() => { updateInputGutter(); gutterRafPending = false; });
+      requestAnimationFrame(() => { updateInputGutter(true); gutterRafPending = false; });
     }
   }).observe(input);
 
@@ -656,6 +658,7 @@
         const span = document.createElement("span");
         span.className = "ws";
         span.textContent = wsChar.repeat(part.length);
+        span.dataset.raw = part;
         container.appendChild(span);
       } else {
         container.appendChild(document.createTextNode(part));
@@ -780,11 +783,10 @@
     debounceTimer = setTimeout(update, 60);
   }
 
+  const cardPairs = [...optionCards].map(card => [card, card.querySelector("input[type=checkbox]")]);
+
   function syncCards() {
-    optionCards.forEach(card => {
-      const cb = card.querySelector("input[type=checkbox]");
-      card.classList.toggle("disabled", !cb.checked);
-    });
+    cardPairs.forEach(([card, cb]) => card.classList.toggle("disabled", !cb.checked));
   }
 
   input.addEventListener("input", () => {
@@ -829,7 +831,7 @@
     const active = toggleButton(toggleInputWrap);
     inputBox.classList.toggle("no-wrap", !active);
     input.setAttribute("wrap", active ? "soft" : "off");
-    updateInputGutter();
+    updateInputGutter(true);
   });
 
   toggleLineNums.addEventListener("click", () => {
@@ -854,7 +856,6 @@
 
   syncCards();
 
-  // Cmd+A in the output box selects only the text content, not line numbers
   output.addEventListener("keydown", (e) => {
     if (e.key === "a" && (e.metaKey || e.ctrlKey) && !e.shiftKey) {
       e.preventDefault();
@@ -871,11 +872,15 @@
   });
 
   output.addEventListener("copy", (e) => {
-    const text = window.getSelection().toString();
-    if (text) {
-      e.preventDefault();
-      e.clipboardData.setData("text/plain", text.replaceAll("\u00B7", " ").replaceAll("\u2192", "\t"));
-    }
+    const sel = window.getSelection();
+    if (sel.isCollapsed) return;
+    const fragment = sel.getRangeAt(0).cloneContents();
+    fragment.querySelectorAll(".ws").forEach(ws => { ws.textContent = ws.dataset.raw; });
+    const div = document.createElement("div");
+    div.style.whiteSpace = "pre";
+    div.appendChild(fragment);
+    e.preventDefault();
+    e.clipboardData.setData("text/plain", div.innerText);
   });
 
   function copyText(text) {

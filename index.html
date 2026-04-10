@@ -147,6 +147,7 @@
   }
 
   .input-box.no-line-nums .input-gutter { display: none; }
+  .input-box.no-wrap textarea { white-space: pre; overflow-wrap: normal; }
 
   .input-gutter .line-num {
     text-align: right;
@@ -435,6 +436,9 @@
         <button class="toggle-btn active" id="toggle-input-lines" type="button" title="Show line numbers in the gutter">
           <span class="toggle-icon">✓</span> lines
         </button>
+        <button class="toggle-btn active" id="toggle-input-wrap" type="button" title="Wrap long lines to fit the viewport">
+          <span class="toggle-icon">✓</span> wrap
+        </button>
       </div>
     </div>
     <div class="input-box">
@@ -548,6 +552,7 @@
   const diffSummary      = document.getElementById("diff-summary");
   const inputGutter      = document.getElementById("input-gutter");
   const toggleInputLines = document.getElementById("toggle-input-lines");
+  const toggleInputWrap  = document.getElementById("toggle-input-wrap");
   const inputBox         = document.querySelector(".input-box");
   const optionCards = document.querySelectorAll(".option-card");
 
@@ -629,14 +634,38 @@
   const gutterBg = output.querySelector(".output-gutter-bg");
   const placeholder = output.querySelector(".output-placeholder");
 
+  const inputMirror = document.createElement("div");
+  inputMirror.style.cssText = "position:absolute;visibility:hidden;white-space:pre-wrap;overflow-wrap:break-word;box-sizing:border-box;";
+  document.body.appendChild(inputMirror);
+
   function updateInputGutter() {
-    const count = input.value.split("\n").length;
-    const nums = [];
-    for (let i = 1; i <= count; i++) {
-      nums.push('<div class="line-num">' + i + '</div>');
+    const lines = input.value.split("\n");
+    const wrapActive = isToggleActive(toggleInputWrap);
+
+    if (wrapActive) {
+      const cs = getComputedStyle(input);
+      inputMirror.style.fontFamily = cs.fontFamily;
+      inputMirror.style.fontSize = cs.fontSize;
+      inputMirror.style.lineHeight = cs.lineHeight;
+      inputMirror.style.letterSpacing = cs.letterSpacing;
+      inputMirror.style.width = input.clientWidth + "px";
+      inputMirror.style.paddingLeft = cs.paddingLeft;
+      inputMirror.style.paddingRight = cs.paddingRight;
     }
-    inputGutter.innerHTML = nums.join("");
+
+    const frags = [];
+    for (let i = 0; i < lines.length; i++) {
+      let style = "";
+      if (wrapActive) {
+        inputMirror.textContent = lines[i] || "\u00A0";
+        style = ' style="height:' + inputMirror.offsetHeight + 'px"';
+      }
+      frags.push('<div class="line-num"' + style + '>' + (i + 1) + '</div>');
+    }
+    inputGutter.innerHTML = frags.join("");
   }
+
+  new ResizeObserver(updateInputGutter).observe(input);
 
   function renderLineContent(container, line) {
     if (!isToggleActive(toggleWhitespace)) {
@@ -826,6 +855,13 @@
   toggleInputLines.addEventListener("click", () => {
     const active = toggleButton(toggleInputLines);
     inputBox.classList.toggle("no-line-nums", !active);
+  });
+
+  toggleInputWrap.addEventListener("click", () => {
+    const active = toggleButton(toggleInputWrap);
+    inputBox.classList.toggle("no-wrap", !active);
+    input.setAttribute("wrap", active ? "soft" : "off");
+    updateInputGutter();
   });
 
   toggleLineNums.addEventListener("click", () => {

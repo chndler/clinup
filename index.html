@@ -870,6 +870,14 @@
     }
   });
 
+  output.addEventListener("copy", (e) => {
+    const text = window.getSelection().toString();
+    if (text) {
+      e.preventDefault();
+      e.clipboardData.setData("text/plain", text.replaceAll("\u00B7", " ").replaceAll("\u2192", "\t"));
+    }
+  });
+
   function copyText(text) {
     // navigator.clipboard requires HTTPS/localhost — falls back for file:// URLs
     if (navigator.clipboard && window.isSecureContext) {

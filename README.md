@@ -1,13 +1,14 @@
 # clinup
 
-**[Try it live](https://chndler.github.io/clinup/)** or open `index.html` locally.  
-**[View source on GitHub](https://github.com/chndler/clinup)** 
-
 A single-file vanilla HTML/JS tool for cleaning up text copied from CLI output.
 
-Paste in messy terminal text and get clean* readable output.
+Paste in messy terminal text and get clean readable output.
 
-No dependencies, no build step. Everything runs in your browser; no data is sent to any server.**
+No dependencies, no build step. Everything runs in your browser; no data is sent to any server.*
+
+**[Try it live](https://chndler.github.io/clinup/)** or open `index.html` locally.  
+
+**[View source on GitHub](https://github.com/chndler/clinup)** 
 
 ## Transforms
 
@@ -18,6 +19,36 @@ No dependencies, no build step. Everything runs in your browser; no data is sent
 - **trim-outer** - trims leading/trailing whitespace
 
 All transforms are toggleable and run in sequence.
+
+### Example
+
+```
+
+  go  build  -ldflags \
+    "-s  -w" \
+    ./cmd/server   
+
+  Build  completed  with
+  3  optimizations  applied:
+
+  - stripped  debug  symbols
+    and  DWARF  info   
+  - dead  code  elimination
+    across  all  packages
+  - static  linking  for
+    single  binary  output
+
+```
+becomes
+```
+go build -ldflags "-s -w" ./cmd/server
+
+Build completed with 3 optimizations applied:
+
+- stripped debug symbols and DWARF info
+- dead code elimination across all packages
+- static linking for single binary output
+```
 
 ## Output controls
 
@@ -32,5 +63,4 @@ The Copy button copies clean text. Cmd/Ctrl+C from the output preserves real cha
 
 ---
 
-*probably  
-**At least from this page’s code. Your browser or extensions could still do their own thing.
+*At least from this page’s code. Your browser or extensions could still do their own thing.

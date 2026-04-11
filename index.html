@@ -512,6 +512,9 @@
   .output-line:is(.diff-removed, .diff-added) .line-num,
   .output-line:is(.diff-removed, .diff-added) .diff-indicator { background: var(--diff-gutter-bg); color: var(--diff-gutter-color); }
   .output-line:is(.diff-removed, .diff-added) .line-text { color: var(--diff-text); }
+
+  .diff-char-del { background: var(--diff-removed-gutter-bg); border-radius: 2px; }
+  .diff-char-ins { background: var(--diff-added-gutter-bg); border-radius: 2px; }
 </style>
 <script>
   (function() {
@@ -779,6 +782,18 @@
     return entries.reverse();
   }
 
+  const RE_TOKENIZE = /(\S+|\s+)/g;
+
+  function computeTokenDiff(oldStr, newStr) {
+    if (oldStr === newStr) return null;
+    const oldToks = oldStr.match(RE_TOKENIZE) || [];
+    const newToks = newStr.match(RE_TOKENIZE) || [];
+    return computeDiff(oldToks, newToks).map(e => ({
+      type: e.type === "unchanged" ? "same" : e.type === "removed" ? "del" : "ins",
+      text: e.text
+    }));
+  }
+
   const gutterBg = output.querySelector(".output-gutter-bg");
   const placeholder = output.querySelector(".output-placeholder");
 
@@ -850,13 +865,14 @@
     scheduleGutterUpdate(true);
   }).observe(input);
 
-  function renderLineContent(container, line, showWs) {
+  const RE_WS_SPLIT = /( +|\t+)/;
+
+  function appendText(container, text, showWs) {
     if (!showWs) {
-      container.textContent = line || "\u00A0";
+      container.appendChild(document.createTextNode(text));
       return;
     }
-    if (!line) { container.textContent = "\u00A0"; return; }
-    const parts = line.split(/( +|\t+)/);
+    const parts = text.split(RE_WS_SPLIT);
     for (const part of parts) {
       if (!part) continue;
       const wsChar = part[0] === " " ? "\u00B7" : part[0] === "\t" ? "\u2192" : null;
@@ -870,6 +886,29 @@
         container.appendChild(document.createTextNode(part));
       }
     }
+  }
+
+  function renderLineContent(container, line, showWs) {
+    if (!line) { container.textContent = "\u00A0"; return; }
+    appendText(container, line, showWs);
+  }
+
+  function renderCharDiffContent(container, charDiff, side, showWs) {
+    const skipType = side === "removed" ? "ins" : "del";
+    const hlType = side === "removed" ? "del" : "ins";
+    const hlClass = side === "removed" ? "diff-char-del" : "diff-char-ins";
+    for (const seg of charDiff) {
+      if (seg.type === skipType) continue;
+      if (seg.type === hlType) {
+        const mark = document.createElement("span");
+        mark.className = hlClass;
+        appendText(mark, seg.text, showWs);
+        container.appendChild(mark);
+      } else {
+        appendText(container, seg.text, showWs);
+      }
+    }
+    if (!container.childNodes.length) container.textContent = "\u00A0";
   }
 
   function renderLines(text) {
@@ -901,6 +940,28 @@
       return cachedDiff;
     }
     const entries = computeDiff(rawText.split("\n"), cleanText.split("\n"));
+
+    // Pair consecutive removed+added lines and compute char-level diffs
+    let idx = 0;
+    while (idx < entries.length) {
+      if (entries[idx].type === "removed") {
+        const remStart = idx;
+        while (idx < entries.length && entries[idx].type === "removed") idx++;
+        const addStart = idx;
+        while (idx < entries.length && entries[idx].type === "added") idx++;
+        const pairs = Math.min(addStart - remStart, idx - addStart);
+        for (let p = 0; p < pairs; p++) {
+          const cd = computeTokenDiff(entries[remStart + p].text, entries[addStart + p].text);
+          if (cd) {
+            entries[remStart + p].charDiff = cd;
+            entries[addStart + p].charDiff = cd;
+          }
+        }
+      } else {
+        idx++;
+      }
+    }
+
     let added = 0, removed = 0;
     entries.forEach(e => { if (e.type === "added") added++; else if (e.type === "removed") removed++; });
     cachedDiff = { raw: rawText, clean: cleanText, entries, added, removed };
@@ -938,7 +999,11 @@
 
       const txt = document.createElement("span");
       txt.className = "line-text";
-      renderLineContent(txt, entry.text, showWs);
+      if (entry.charDiff) {
+        renderCharDiffContent(txt, entry.charDiff, entry.type, showWs);
+      } else {
+        renderLineContent(txt, entry.text, showWs);
+      }
 
       row.appendChild(numOld);
       row.appendChild(numNew);

@@ -339,7 +339,7 @@
     content: "";
     width: 1px;
     height: 0.5rem;
-    background: var(--border);
+    background: var(--border-hover);
   }
 
   .pipeline-connector::after {
@@ -348,7 +348,7 @@
     height: 0;
     border-left: 3px solid transparent;
     border-right: 3px solid transparent;
-    border-top: 4px solid var(--border);
+    border-top: 4px solid var(--border-hover);
   }
 
   .transforms-wrap {
@@ -556,7 +556,7 @@
     </div>
   </div>
 
-  <div class="pipeline-connector"></div>
+  <div class="pipeline-connector" aria-hidden="true"></div>
 
   <div class="transforms-wrap">
     <span class="section-label">Transforms</span>
@@ -624,7 +624,7 @@
     </div>
   </div>
 
-  <div class="pipeline-connector"></div>
+  <div class="pipeline-connector" aria-hidden="true"></div>
 
   <div>
     <div class="section-header">
@@ -713,14 +713,23 @@
     if (icon) icon.textContent = active ? "\u2713" : "\u00B7";
   }
 
+  const RE_PARA_BREAK = /\n\s*\n/;
+  const RE_NEWLINE_WS = /\n\s*/g;
+  const RE_LIST_OR_HEADING = /^[-*+•⏺] |^\d+[.)] |^#{1,6} /;
+  const RE_HEADING_LINE = /^\s*(?:[⏺•]\s*)?#{1,6} /;
+  const RE_BOX_RULES = /(?:^\s*[\u2500-\u257F]{3,}\s*$\n?|\s+[\u2500-\u257F]{3,}\s*$)/gm;
+  const RE_TRAILING_WS = /[^\S\n]+$/gm;
+  const RE_CONTINUATION = /\\\s*\n\s*/g;
+  const RE_MULTI_SPACE = / {2,}/g;
+
   function unwrapParagraphs(text, trim) {
-    return text.split(/\n\s*\n/).map(para => {
-      const unwrapped = para.replace(/\n\s*/g, (match, offset) => {
+    return text.split(RE_PARA_BREAK).map(para => {
+      const unwrapped = para.replace(RE_NEWLINE_WS, (match, offset) => {
         const rest = para.slice(offset + match.length);
-        if (/^[-*+•⏺] |^\d+[.)] |^#{1,6} /.test(rest)) return "\n";
+        if (RE_LIST_OR_HEADING.test(rest)) return "\n";
         const before = para.slice(0, offset);
         const lastLine = before.substring(before.lastIndexOf("\n") + 1);
-        if (/^\s*(?:[⏺•]\s*)?#{1,6} /.test(lastLine)) return "\n";
+        if (RE_HEADING_LINE.test(lastLine)) return "\n";
         return " ";
       });
       return trim ? unwrapped.trim() : unwrapped;
@@ -730,12 +739,12 @@
   function clean(text) {
     let result = text;
     if (optRules.checked) {
-      result = result.replace(/(?:^\s*[\u2500-\u257F]{3,}\s*$\n?|\s+[\u2500-\u257F]{3,}\s*$)/gm, "");
+      result = result.replace(RE_BOX_RULES, "");
     }
-    if (optStripTrailing.checked) result = result.replace(/[^\S\n]+$/gm, "");
-    if (optJoin.checked)     result = result.replace(/\\\s*\n\s*/g, " ");
+    if (optStripTrailing.checked) result = result.replace(RE_TRAILING_WS, "");
+    if (optJoin.checked)     result = result.replace(RE_CONTINUATION, " ");
     if (optUnwrap.checked)   result = unwrapParagraphs(result, optTrim.checked);
-    if (optCollapse.checked) result = result.replace(/ {2,}/g, " ");
+    if (optCollapse.checked) result = result.replace(RE_MULTI_SPACE, " ");
     if (optTrim.checked)     result = result.trim();
     return result;
   }
@@ -840,8 +849,8 @@
     scheduleGutterUpdate(true);
   }).observe(input);
 
-  function renderLineContent(container, line) {
-    if (!isToggleActive(toggleWhitespace)) {
+  function renderLineContent(container, line, showWs) {
+    if (!showWs) {
       container.textContent = line || "\u00A0";
       return;
     }
@@ -863,6 +872,7 @@
   }
 
   function renderLines(text) {
+    const showWs = isToggleActive(toggleWhitespace);
     const wrap = document.createElement("div");
     wrap.className = "output-lines-wrap";
     const lines = text.split("\n");
@@ -876,7 +886,7 @@
 
       const txt = document.createElement("span");
       txt.className = "line-text";
-      renderLineContent(txt, line);
+      renderLineContent(txt, line, showWs);
 
       row.appendChild(num);
       row.appendChild(txt);
@@ -898,6 +908,7 @@
 
   function renderDiffLines(rawText, cleanText) {
     const diff = getDiff(rawText, cleanText);
+    const showWs = isToggleActive(toggleWhitespace);
 
     const wrap = document.createElement("div");
     wrap.className = "output-lines-wrap";
@@ -926,7 +937,7 @@
 
       const txt = document.createElement("span");
       txt.className = "line-text";
-      renderLineContent(txt, entry.text);
+      renderLineContent(txt, entry.text, showWs);
 
       row.appendChild(numOld);
       row.appendChild(numNew);

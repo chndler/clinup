@@ -73,8 +73,8 @@
     --border-hover: #8c959f;
     --text-primary: #1f2328;
     --text-secondary: #24292f;
-    --text-muted: #57606a;
-    --text-faint: #656d76;
+    --text-muted: #3b434d;
+    --text-faint: #424a54;
     --accent: #0969da;
     --success: #1a7f37;
     --selection-bg: rgba(9, 105, 218, 0.2);
@@ -149,22 +149,20 @@
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
     overflow: hidden;
+    padding: 0;
+    cursor: pointer;
+    font-family: inherit;
   }
 
   .theme-option {
-    background: none;
-    border: none;
     color: var(--text-faint);
-    font-family: var(--font-mono);
     font-size: var(--font-size-sm);
     padding: 0.125rem var(--space-sm);
     border-radius: var(--radius-sm);
-    cursor: pointer;
-    user-select: none;
     transition: background 0.15s, color 0.15s;
   }
-  .theme-option:hover:not(.active) { color: var(--text-muted); }
-  .theme-option.active { color: var(--text-secondary); background: var(--bg-primary); cursor: default; }
+  .theme-switch:hover .theme-option:not(.active) { color: var(--text-muted); }
+  .theme-option.active { color: var(--text-secondary); background: var(--bg-primary); }
 
   .container {
     width: 100%;
@@ -213,6 +211,8 @@
     font: inherit;
     color: inherit;
   }
+
+  .input-box textarea::placeholder { color: var(--text-faint); opacity: 1; }
 
   .input-gutter {
     min-width: 2.5rem;
@@ -320,6 +320,13 @@
   .action-btn:hover { background: var(--border); color: var(--text-primary); }
   .action-btn.copied { color: var(--success); border-color: var(--success); }
 
+  .toggle-btn:focus-visible,
+  .action-btn:focus-visible,
+  .theme-switch:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
   .pipeline-connector {
     display: flex;
     flex-direction: column;
@@ -392,7 +399,6 @@
     gap: var(--space-xs);
     font-size: var(--font-size-md);
     color: var(--text-secondary);
-    cursor: pointer;
     user-select: none;
   }
 
@@ -525,10 +531,10 @@
     <h1>clinup</h1>
     <p class="subtitle">Paste CLI output, get clean text.</p>
   </div>
-  <div class="theme-switch" role="radiogroup" aria-label="Color theme">
-    <button class="theme-option" data-theme="dark" type="button" role="radio">☾ dark</button>
-    <button class="theme-option" data-theme="light" type="button" role="radio">☀ light</button>
-  </div>
+  <button class="theme-switch" type="button" role="switch" aria-label="Dark mode">
+    <span class="theme-option" data-theme="light" aria-hidden="true">☀</span>
+    <span class="theme-option" data-theme="dark" aria-hidden="true">☾</span>
+  </button>
 </header>
 
 <div class="container">
@@ -652,23 +658,27 @@
 
 
 <script>
-  const themeOptions = document.querySelectorAll(".theme-option");
+  let inputFontSynced = false;
+
+  const THEME_DARK = "dark";
+  const THEME_LIGHT = "light";
+  const themeSwitch = document.querySelector(".theme-switch");
+  const themeOptionEls = themeSwitch.querySelectorAll(".theme-option");
 
   function syncThemeSwitch() {
     const current = document.documentElement.dataset.theme;
-    themeOptions.forEach(btn => {
-      btn.classList.toggle("active", btn.dataset.theme === current);
-      btn.setAttribute("aria-checked", btn.dataset.theme === current);
+    themeSwitch.setAttribute("aria-checked", current === THEME_DARK);
+    themeOptionEls.forEach(el => {
+      el.classList.toggle("active", el.dataset.theme === current);
     });
   }
 
-  themeOptions.forEach(btn => {
-    btn.addEventListener("click", () => {
-      document.documentElement.dataset.theme = btn.dataset.theme;
-      localStorage.setItem("theme", btn.dataset.theme);
-      inputFontSynced = false;
-      syncThemeSwitch();
-    });
+  themeSwitch.addEventListener("click", () => {
+    const next = document.documentElement.dataset.theme === THEME_DARK ? THEME_LIGHT : THEME_DARK;
+    document.documentElement.dataset.theme = next;
+    localStorage.setItem("theme", next);
+    inputFontSynced = false;
+    syncThemeSwitch();
   });
 
   syncThemeSwitch();
@@ -696,7 +706,6 @@
   let lastClean = "";
   let lastRaw = "";
   let debounceTimer;
-  let inputFontSynced = false;
   let cachedDiff = null;
 
   function setToggleIcon(el, active) {
@@ -788,7 +797,7 @@
         inputMirror.style.paddingRight = cs.paddingRight;
         inputFontSynced = true;
       }
-      inputMirror.style.width = input.clientWidth + "px";
+      inputMirror.style.width = cachedInputWidth + "px";
       const frag = document.createDocumentFragment();
       lines.forEach(l => {
         const div = document.createElement("div");
@@ -812,6 +821,7 @@
 
   let gutterRafPending = false;
   let gutterRafForce = false;
+  let cachedInputWidth = input.clientWidth;
 
   function scheduleGutterUpdate(force) {
     if (force) gutterRafForce = true;
@@ -825,7 +835,10 @@
     }
   }
 
-  new ResizeObserver(() => scheduleGutterUpdate(true)).observe(input);
+  new ResizeObserver(() => {
+    cachedInputWidth = input.clientWidth;
+    scheduleGutterUpdate(true);
+  }).observe(input);
 
   function renderLineContent(container, line) {
     if (!isToggleActive(toggleWhitespace)) {
@@ -1079,7 +1092,7 @@
   });
 
   function copyText(text) {
-    // Secure context required — falls back to execCommand for file:// URLs
+    // clipboard API unavailable on file:// URLs
     if (navigator.clipboard && window.isSecureContext) {
       return navigator.clipboard.writeText(text);
     }
@@ -1106,7 +1119,7 @@
         copyBtn.textContent = "Copy";
         copyBtn.classList.remove("copied");
       }, 1500);
-    });
+    }, () => {});
   });
 </script>
 

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>clinup</title>
 <style>
   :root {
@@ -10,12 +10,12 @@
 
     /* colors */
     --bg-primary: #0d1117;
-    --bg-gutter: #0d1117;
-    --bg-secondary: #161b22;
-    --bg-tertiary: #21262d;
-    --border-subtle: #21262d;
-    --border: #30363d;
-    --border-hover: #484f58;
+    --bg-gutter: #111820;
+    --bg-secondary: #1c2129;
+    --bg-tertiary: #272d36;
+    --border-subtle: #2d333b;
+    --border: #3d444d;
+    --border-hover: #525b65;
     --text-primary: #e6edf3;
     --text-secondary: #c9d1d9;
     --text-muted: #8b949e;
@@ -23,8 +23,8 @@
     --accent: #58a6ff;
     --success: #3fb950;
     --selection-bg: rgba(56, 139, 253, 0.3);
-    --line-hover-bg: rgba(136, 198, 255, 0.04);
-    --accent-tint: rgba(88, 166, 255, 0.04);
+    --line-hover-bg: rgba(136, 198, 255, 0.06);
+    --accent-tint: rgba(255, 255, 255, 0.04);
 
     /* fonts */
     --font-mono: "SF Mono", "Fira Code", "Fira Mono", Menlo, Consolas, monospace;
@@ -79,7 +79,7 @@
     --success: #1a7f37;
     --selection-bg: rgba(9, 105, 218, 0.2);
     --line-hover-bg: rgba(208, 215, 222, 0.32);
-    --accent-tint: rgba(9, 105, 218, 0.06);
+    --accent-tint: rgba(0, 0, 0, 0.03);
     --diff-removed-bg: rgba(255, 129, 130, 0.10);
     --diff-removed-bg-hover: rgba(255, 129, 130, 0.20);
     --diff-removed-gutter-bg: rgba(255, 129, 130, 0.30);
@@ -93,6 +93,7 @@
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
   ::selection { background: var(--selection-bg); }
 
@@ -357,10 +358,6 @@
     padding: var(--space-sm);
   }
 
-  .transforms-wrap .section-label {
-    display: block;
-    margin-bottom: var(--space-xs);
-  }
 
   .options {
     display: grid;
@@ -558,8 +555,11 @@
 
   <div class="pipeline-connector" aria-hidden="true"></div>
 
-  <div class="transforms-wrap">
-    <span class="section-label">Transforms</span>
+  <div>
+    <div class="section-header">
+      <span class="section-label">Transforms</span>
+    </div>
+    <div class="transforms-wrap">
     <div class="options">
     <div class="option-card">
       <label class="option-label">
@@ -620,6 +620,7 @@
         <span class="arrow">&rarr;</span>
         <code>hello world</code>
       </div>
+    </div>
     </div>
     </div>
   </div>

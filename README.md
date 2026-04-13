@@ -4,7 +4,7 @@ A single-file vanilla HTML/JS tool for cleaning up text copied from CLI output.
 
 Paste in messy terminal text and get clean readable output.
 
-No dependencies, no build step. Everything runs in your browser; no data is sent to any server.*
+Zero runtime dependencies. Everything runs in your browser; no data is sent to any server.*
 
 **[Try it live](https://chndler.github.io/clinup/)** or open `index.html` locally.  
 
@@ -64,6 +64,17 @@ Build completed with 3 optimizations applied:
 ## Copying Output
 
 The Copy button copies clean text. Cmd/Ctrl+C from the output preserves real characters - whitespace visualization symbols are swapped back to actual spaces/tabs.
+
+## Development
+
+The transform logic lives in `src/transforms.js` and is inlined into `index.html` at build time.
+
+```sh
+npm run build   # rebuild index.html from src/
+npm test        # run unit tests
+```
+
+CI runs tests and checks that `index.html` is up-to-date with the source.
 
 ---
 

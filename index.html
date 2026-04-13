@@ -193,7 +193,7 @@
     transition: border-color 0.15s;
   }
 
-  .input-box:focus-within, .output-box:focus { border-color: var(--accent); outline: none; }
+  .input-box:focus-within, .output-box:focus-within { border-color: var(--accent); outline: none; }
 
   .input-box {
     display: flex;
@@ -239,9 +239,25 @@
   .output-box {
     min-height: 64px;
     cursor: default;
+    display: flex;
+    overflow: hidden;
+  }
+
+  .output-gutter {
+    min-width: 2.5rem;
+    padding: var(--space-sm) 0;
+    background: var(--bg-gutter);
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .output-box.no-line-nums .output-gutter { display: none; }
+
+  .output-content {
+    flex: 1;
     overflow: auto;
     padding: var(--space-sm) 0;
-    position: relative;
   }
 
   .output-box.no-wrap .output-lines-wrap {
@@ -253,25 +269,6 @@
   }
 
   .output-line:hover { background: var(--line-hover-bg); }
-
-  .output-gutter-bg {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 2.5rem;
-    background: var(--bg-gutter);
-    border-radius: var(--radius-md) 0 0 var(--radius-md);
-    pointer-events: none;
-  }
-
-  .output-box.no-line-nums .output-gutter-bg { display: none; }
-
-  .output-line .line-num {
-    min-width: 2.5rem;
-    flex-shrink: 0;
-    position: relative;
-  }
 
   .output-line .line-text {
     flex: 1;
@@ -290,11 +287,9 @@
     margin-bottom: var(--space-xs);
   }
 
-  .output-box.empty { padding: var(--space-sm); }
-  .output-box.empty:not(.no-line-nums) { padding-left: 3.25rem; }
+  .output-box.empty .output-content { padding: var(--space-sm); }
   .output-box.empty .output-placeholder { color: var(--text-faint); }
 
-  .output-box.no-line-nums .line-num { display: none; }
   .output-box.no-wrap .line-text { white-space: pre; }
 
   .section-footer {
@@ -474,15 +469,9 @@
   .diff-summary-added { color: var(--diff-added-text); }
   .diff-summary-removed { color: var(--diff-removed-text); margin-left: var(--space-xs); }
 
-  .output-box.diff-mode .output-gutter-bg {
-    width: 5.875rem;
-  }
-
-  .output-box.diff-mode .line-num,
-  .output-box.diff-mode .diff-indicator {
-    background: var(--bg-gutter);
-    position: relative;
-  }
+  .output-box.diff-mode .output-gutter { min-width: 5.875rem; }
+  .gutter-row { display: flex; }
+  .gutter-row .line-num { min-width: 2.5rem; flex-shrink: 0; }
 
   .output-box.diff-mode .line-text {
     padding-left: var(--space-sm);
@@ -498,20 +487,21 @@
 
   .output-line.diff-removed {
     --diff-bg: var(--diff-removed-bg); --diff-bg-hover: var(--diff-removed-bg-hover);
-    --diff-gutter-bg: var(--diff-removed-gutter-bg); --diff-gutter-color: var(--diff-removed-gutter);
     --diff-text: var(--diff-removed-text);
   }
   .output-line.diff-added {
     --diff-bg: var(--diff-added-bg); --diff-bg-hover: var(--diff-added-bg-hover);
-    --diff-gutter-bg: var(--diff-added-gutter-bg); --diff-gutter-color: var(--diff-added-gutter);
     --diff-text: var(--diff-added-text);
   }
 
   .output-line:is(.diff-removed, .diff-added) { background: var(--diff-bg); }
   .output-line:is(.diff-removed, .diff-added):hover { background: var(--diff-bg-hover); }
-  .output-line:is(.diff-removed, .diff-added) .line-num,
-  .output-line:is(.diff-removed, .diff-added) .diff-indicator { background: var(--diff-gutter-bg); color: var(--diff-gutter-color); }
   .output-line:is(.diff-removed, .diff-added) .line-text { color: var(--diff-text); }
+
+  .gutter-row.diff-removed .line-num,
+  .gutter-row.diff-removed .diff-indicator { background: var(--diff-removed-gutter-bg); color: var(--diff-removed-gutter); }
+  .gutter-row.diff-added .line-num,
+  .gutter-row.diff-added .diff-indicator { background: var(--diff-added-gutter-bg); color: var(--diff-added-gutter); }
 
   .diff-char-del { background: var(--diff-removed-gutter-bg); border-radius: 2px; }
   .diff-char-ins { background: var(--diff-added-gutter-bg); border-radius: 2px; }
@@ -648,9 +638,11 @@
         </button>
       </div>
     </div>
-    <div id="output" class="output-box empty" tabindex="0" role="region" aria-label="Cleaned output">
-      <div class="output-gutter-bg"></div>
-      <span class="output-placeholder">Cleaned text will appear here</span>
+    <div id="output" class="output-box empty" role="region" aria-label="Cleaned output">
+      <div class="output-gutter" id="output-gutter"></div>
+      <div class="output-content" id="output-content" tabindex="0">
+        <span class="output-placeholder">Cleaned text will appear here</span>
+      </div>
     </div>
     <div class="section-footer">
       <div id="diff-summary" class="diff-summary" style="display:none"></div>
@@ -811,8 +803,9 @@
     });
   }
 
-  const gutterBg = output.querySelector(".output-gutter-bg");
-  const placeholder = output.querySelector(".output-placeholder");
+  const outputGutter  = document.getElementById("output-gutter");
+  const outputContent = document.getElementById("output-content");
+  const placeholder   = outputContent.querySelector(".output-placeholder");
 
   const inputMirror = document.createElement("div");
   inputMirror.style.cssText = "position:fixed;left:-9999px;white-space:pre-wrap;overflow-wrap:break-word;box-sizing:border-box;";
@@ -928,28 +921,37 @@
     if (!container.childNodes.length) container.textContent = "\u00A0";
   }
 
+  function syncOutputGutterHeights() {
+    const rows = outputContent.querySelectorAll(".output-line");
+    const gutterChildren = outputGutter.children;
+    for (let i = 0; i < rows.length && i < gutterChildren.length; i++) {
+      gutterChildren[i].style.height = rows[i].offsetHeight + "px";
+    }
+  }
+
   function renderLines(text) {
     const showWs = isToggleActive(toggleWhitespace);
+    const gutterFrag = document.createDocumentFragment();
     const wrap = document.createElement("div");
     wrap.className = "output-lines-wrap";
     const lines = text.split("\n");
     lines.forEach((line, i) => {
-      const row = document.createElement("div");
-      row.className = "output-line";
-
-      const num = document.createElement("span");
+      const num = document.createElement("div");
       num.className = "line-num";
       num.textContent = i + 1;
+      gutterFrag.appendChild(num);
 
+      const row = document.createElement("div");
+      row.className = "output-line";
       const txt = document.createElement("span");
       txt.className = "line-text";
       renderLineContent(txt, line, showWs);
-
-      row.appendChild(num);
       row.appendChild(txt);
       wrap.appendChild(row);
     });
-    output.replaceChildren(gutterBg, wrap);
+    outputGutter.replaceChildren(gutterFrag);
+    outputContent.replaceChildren(wrap);
+    syncOutputGutterHeights();
   }
 
   function getDiff(rawText, cleanedText) {
@@ -989,6 +991,7 @@
     const diff = getDiff(rawText, cleanedText);
     const showWs = isToggleActive(toggleWhitespace);
 
+    const gutterFrag = document.createDocumentFragment();
     const wrap = document.createElement("div");
     wrap.className = "output-lines-wrap";
     let oldNum = 0, newNum = 0;
@@ -997,9 +1000,9 @@
       else if (entry.type === "added") newNum++;
       else { oldNum++; newNum++; }
 
-      const row = document.createElement("div");
-      row.className = "output-line";
-      if (entry.type !== "unchanged") row.classList.add("diff-" + entry.type);
+      const gr = document.createElement("div");
+      gr.className = "gutter-row";
+      if (entry.type !== "unchanged") gr.classList.add("diff-" + entry.type);
 
       const numOld = document.createElement("span");
       numOld.className = "line-num";
@@ -1011,8 +1014,17 @@
 
       const indicator = document.createElement("span");
       indicator.className = "diff-indicator";
-      if (entry.type === "removed") indicator.textContent = "−";
+      if (entry.type === "removed") indicator.textContent = "\u2212";
       else if (entry.type === "added") indicator.textContent = "+";
+
+      gr.appendChild(numOld);
+      gr.appendChild(numNew);
+      gr.appendChild(indicator);
+      gutterFrag.appendChild(gr);
+
+      const row = document.createElement("div");
+      row.className = "output-line";
+      if (entry.type !== "unchanged") row.classList.add("diff-" + entry.type);
 
       const txt = document.createElement("span");
       txt.className = "line-text";
@@ -1022,14 +1034,13 @@
         renderLineContent(txt, entry.text, showWs);
       }
 
-      row.appendChild(numOld);
-      row.appendChild(numNew);
-      row.appendChild(indicator);
       row.appendChild(txt);
       wrap.appendChild(row);
     });
 
-    output.replaceChildren(gutterBg, wrap);
+    outputGutter.replaceChildren(gutterFrag);
+    outputContent.replaceChildren(wrap);
+    syncOutputGutterHeights();
     updateDiffSummary(diff.added, diff.removed);
   }
 
@@ -1066,7 +1077,8 @@
     const raw = input.value;
     if (!/\S/.test(raw)) {
       if (lastClean) {
-        output.replaceChildren(gutterBg, placeholder);
+        outputGutter.replaceChildren();
+        outputContent.replaceChildren(placeholder);
         output.classList.add("empty");
         output.classList.remove("diff-mode");
         lastClean = "";
@@ -1116,6 +1128,14 @@
     inputGutter.scrollTop = input.scrollTop;
   });
 
+  outputContent.addEventListener("scroll", () => {
+    outputGutter.scrollTop = outputContent.scrollTop;
+  });
+
+  new ResizeObserver(() => {
+    if (lastClean) syncOutputGutterHeights();
+  }).observe(outputContent);
+
   [optStripTrailing, optRules, optJoin, optUnwrap, optCollapse, optTrim].forEach(cb => cb.addEventListener("change", () => {
     syncCards();
     clearTimeout(debounceTimer);
@@ -1157,12 +1177,12 @@
 
   syncCards();
 
-  output.addEventListener("keydown", (e) => {
+  outputContent.addEventListener("keydown", (e) => {
     if (e.key === "a" && (e.metaKey || e.ctrlKey) && !e.shiftKey) {
       e.preventDefault();
       const sel = window.getSelection();
       sel.removeAllRanges();
-      const texts = output.querySelectorAll(".line-text");
+      const texts = outputContent.querySelectorAll(".line-text");
       if (texts.length) {
         const range = document.createRange();
         range.setStartBefore(texts[0]);
@@ -1172,7 +1192,7 @@
     }
   });
 
-  output.addEventListener("copy", (e) => {
+  outputContent.addEventListener("copy", (e) => {
     if (!isToggleActive(toggleWhitespace)) return;
     const sel = window.getSelection();
     if (sel.isCollapsed) return;

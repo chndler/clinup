@@ -719,8 +719,8 @@
 
   const RE_PARA_BREAK = /\n\s*\n/;
   const RE_NEWLINE_WS = /\n\s*/g;
-  const RE_LIST_OR_HEADING = /^[-*+•⏺] |^\d+[.)] |^#{1,6} /;
-  const RE_HEADING_LINE = /^\s*(?:[⏺•]\s*)?#{1,6} /;
+  const RE_LIST_OR_HEADING = /^[-*+•⏺★✦◆▶►■●⚡⚠⚙➤→✓✗] |^\d+[.)] |^#{1,6} /;
+  const RE_HEADING_LINE = /^\s*(?:(?:[⏺•]\s*)?#{1,6} |[★✦◆▶►■●⚡⚠⚙➤→✓✗]\s)/;
   const RE_BOX_RULES = /(?:^\s*[\u2500-\u257F]{3,}\s*$\n?|\s+[\u2500-\u257F]{3,}\s*$)/gm;
   const RE_TRAILING_WS = /[^\S\n]+$/gm;
   const RE_CONTINUATION = /\\\s*\n\s*/g;

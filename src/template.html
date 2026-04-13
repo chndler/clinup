@@ -211,6 +211,7 @@
     padding: var(--space-sm);
     font: inherit;
     color: inherit;
+    overflow-y: hidden;
   }
 
   .input-box textarea::placeholder { color: var(--text-faint); opacity: 1; }
@@ -225,7 +226,7 @@
   }
 
   .input-box.no-line-nums .input-gutter { display: none; }
-  .input-box.no-wrap textarea { white-space: pre; overflow-wrap: normal; }
+  .input-box.no-wrap textarea { white-space: pre; overflow-wrap: normal; padding-bottom: var(--space-lg); }
 
   .line-num {
     text-align: right;
@@ -732,6 +733,11 @@
 
   let lastGutterCount = 1;
 
+  function autoSizeInput() {
+    input.style.height = "0";
+    input.style.height = input.scrollHeight + "px";
+  }
+
   function updateInputGutter(force) {
     const lines = input.value.split("\n");
     const wrapActive = isToggleActive(toggleInputWrap);
@@ -791,6 +797,7 @@
 
   new ResizeObserver(() => {
     cachedInputWidth = input.clientWidth;
+    autoSizeInput();
     scheduleGutterUpdate(true);
   }).observe(input);
 
@@ -1039,6 +1046,7 @@
   });
 
   input.addEventListener("input", () => {
+    autoSizeInput();
     scheduleGutterUpdate(false);
     debouncedUpdate();
   });
@@ -1084,6 +1092,7 @@
     const active = toggleButton(toggleInputWrap);
     inputBox.classList.toggle("no-wrap", !active);
     input.setAttribute("wrap", active ? "soft" : "off");
+    autoSizeInput();
     updateInputGutter(true);
   });
 

@@ -216,7 +216,7 @@
 
   .input-box textarea::placeholder { color: var(--text-faint); opacity: 1; }
 
-  .input-gutter {
+  .input-gutter, .output-gutter {
     min-width: 2.5rem;
     padding: var(--space-sm) 0;
     background: var(--bg-gutter);
@@ -226,6 +226,10 @@
   }
 
   .input-box.no-line-nums .input-gutter { display: none; }
+  .output-box.no-line-nums .output-gutter { display: none; }
+  .output-box.no-line-nums.diff-mode .output-gutter { display: block; min-width: auto; }
+  .output-box.no-line-nums .output-gutter .line-num { display: none; }
+
   .input-box.no-wrap textarea { white-space: pre; overflow-wrap: normal; padding-bottom: var(--space-lg); }
 
   .line-num {
@@ -243,17 +247,6 @@
     display: flex;
     overflow: hidden;
   }
-
-  .output-gutter {
-    min-width: 2.5rem;
-    padding: var(--space-sm) 0;
-    background: var(--bg-gutter);
-    border-radius: var(--radius-md) 0 0 var(--radius-md);
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-
-  .output-box.no-line-nums .output-gutter { display: none; }
 
   .output-content {
     flex: 1;
@@ -931,9 +924,10 @@
   function syncOutputGutterHeights() {
     const rows = outputContent.querySelectorAll(".output-line");
     const gutterChildren = outputGutter.children;
-    for (let i = 0; i < rows.length && i < gutterChildren.length; i++) {
-      gutterChildren[i].style.height = rows[i].offsetHeight + "px";
-    }
+    const len = Math.min(rows.length, gutterChildren.length);
+    const heights = new Array(len);
+    for (let i = 0; i < len; i++) heights[i] = rows[i].offsetHeight;
+    for (let i = 0; i < len; i++) gutterChildren[i].style.height = heights[i] + "px";
   }
 
   function renderLines(text) {
@@ -1132,9 +1126,7 @@
     debouncedUpdate();
   });
 
-  input.addEventListener("scroll", () => {
-    inputGutter.scrollTop = input.scrollTop;
-  });
+  inputBox.addEventListener("click", () => { input.focus(); });
 
   outputContent.addEventListener("scroll", () => {
     outputGutter.scrollTop = outputContent.scrollTop;
@@ -1166,6 +1158,7 @@
    [toggleWrap, output, "no-wrap"]].forEach(([btn, target, cls]) => {
     btn.addEventListener("click", () => {
       target.classList.toggle(cls, !toggleButton(btn));
+      if (btn === toggleWrap && lastClean) syncOutputGutterHeights();
     });
   });
 

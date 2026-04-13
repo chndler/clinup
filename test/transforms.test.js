@@ -46,6 +46,14 @@ Build completed with 3 optimizations applied:
   });
 });
 
+describe("cleanText passthrough", () => {
+  it("returns input unchanged when all options are disabled", () => {
+    const input = "  hello   world  \n  line two  \n";
+    const opts = { stripRules: false, stripTrailing: false, joinContinuations: false, unwrapParagraphs: false, collapseSpaces: false, trimOuter: false };
+    assert.equal(cleanText(input, opts), input);
+  });
+});
+
 describe("strip-rules", () => {
   it("removes lines made entirely of box-drawing characters", () => {
     const input = "hello\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nworld";

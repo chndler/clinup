@@ -12,7 +12,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: node --test test/transforms.test.js
+      - run: node --test test/transforms.test.js test/clipboard.test.js test/cli.test.js
       - name: Check bundle freshness
         run: |
           node scripts/build.js

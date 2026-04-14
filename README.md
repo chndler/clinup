@@ -65,6 +65,27 @@ Build completed with 3 optimizations applied:
 
 The Copy button copies clean text. Cmd/Ctrl+C from the output preserves real characters - whitespace visualization symbols are swapped back to actual spaces/tabs.
 
+## CLI
+
+Run directly with Node or compile to a standalone binary with Bun:
+
+```sh
+node bin/clinup.js              # run directly
+bun build bin/clinup.js --compile --outfile clinup  # compile
+```
+
+### Usage
+
+```sh
+clinup                                    # clipboard → stdout + clipboard
+clinup -i messy.txt                       # file → stdout
+clinup -i messy.txt -o clean.txt          # file → file
+cat messy.txt | clinup                    # stdin → stdout
+clinup --disable strip-rules,trim-outer   # skip specific transforms
+clinup --no-clipboard                     # don't update clipboard
+clinup --help                             # show all options
+```
+
 ## Development
 
 The transform logic lives in `src/transforms.js` and is inlined into `index.html` at build time.

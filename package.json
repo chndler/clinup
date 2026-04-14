@@ -1,8 +1,18 @@
 {
+  "name": "clinup",
   "private": true,
   "type": "module",
+  "version": "0.1.0",
+  "bin": {
+    "clinup": "bin/clinup.js"
+  },
+  "files": [
+    "bin/",
+    "src/"
+  ],
   "scripts": {
     "build": "node scripts/build.js",
-    "test": "node --test test/transforms.test.js"
+    "build:cli": "bun build bin/clinup.js --compile --outfile dist/clinup",
+    "test": "node --test test/transforms.test.js test/clipboard.test.js test/cli.test.js"
   }
 }

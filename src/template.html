@@ -357,7 +357,6 @@
     max-width: 100%;
   }
 
-  .option-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
 
   @media (max-width: 540px) {
     .options { grid-template-columns: 1fr; }
@@ -552,6 +551,16 @@
     <div class="options">
     <div class="option-card">
       <label class="option-label">
+        <input type="checkbox" id="opt-strip-gutters" checked><span class="toggle-icon" aria-hidden="true">✓</span> strip-gutters
+      </label>
+      <div class="option-example">
+        <code>▎ text</code>
+        <span class="arrow">&rarr;</span>
+        <code>text</code>
+      </div>
+    </div>
+    <div class="option-card">
+      <label class="option-label">
         <input type="checkbox" id="opt-strip-rules" checked><span class="toggle-icon" aria-hidden="true">✓</span> strip-rules
       </label>
       <div class="option-example">
@@ -679,6 +688,7 @@
   const output      = document.getElementById("output");
   const copyBtn     = document.getElementById("copy-btn");
   const optStripTrailing = document.getElementById("opt-strip-trailing");
+  const optGutters       = document.getElementById("opt-strip-gutters");
   const optRules         = document.getElementById("opt-strip-rules");
   const optJoin     = document.getElementById("opt-join");
   const optUnwrap   = document.getElementById("opt-unwrap");
@@ -709,6 +719,7 @@
 
   function clean(text) {
     return cleanText(text, {
+      stripGutters: optGutters.checked,
       stripRules: optRules.checked,
       stripTrailing: optStripTrailing.checked,
       joinContinuations: optJoin.checked,
@@ -1057,7 +1068,7 @@
     if (lastClean) syncOutputGutterHeights();
   }).observe(outputContent);
 
-  [optStripTrailing, optRules, optJoin, optUnwrap, optCollapse, optTrim].forEach(cb => cb.addEventListener("change", () => {
+  [optGutters, optStripTrailing, optRules, optJoin, optUnwrap, optCollapse, optTrim].forEach(cb => cb.addEventListener("change", () => {
     syncCards();
     clearTimeout(debounceTimer);
     update();

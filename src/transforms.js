@@ -2,6 +2,7 @@ const RE_PARA_BREAK = /\n\s*\n/;
 const RE_NEWLINE_WS = /\n\s*/g;
 const RE_LIST_OR_HEADING = /^[-*+•⏺★✦◆▶►■●⚡⚠⚙➤→✓✗] |^\d+[.)] |^#{1,6} /;
 const RE_HEADING_LINE = /^\s*(?:(?:[⏺•]\s*)?#{1,6} |[★✦◆▶►■●⚡⚠⚙➤→✓✗]\s)/;
+const RE_GUTTER = /^\s*[\u2502\u2503\u2551\u2588-\u258F]\s?/gm;
 const RE_BOX_RULES = /(?:^\s*[\u2500-\u257F]{3,}\s*$\n?|\s+[\u2500-\u257F]{3,}\s*$)/gm;
 const RE_TRAILING_WS = /[^\S\n]+$/gm;
 const RE_CONTINUATION = /\\\s*\n\s*/g;
@@ -24,6 +25,7 @@ function unwrapParagraphs(text, trim) {
 
 function cleanText(text, options = {}) {
   const {
+    stripGutters = true,
     stripRules = true,
     stripTrailing = true,
     joinContinuations = true,
@@ -33,6 +35,7 @@ function cleanText(text, options = {}) {
   } = options;
 
   let result = text;
+  if (stripGutters)      result = result.replace(RE_GUTTER, "");
   if (stripRules)        result = result.replace(RE_BOX_RULES, "");
   if (stripTrailing)     result = result.replace(RE_TRAILING_WS, "");
   if (joinContinuations) result = result.replace(RE_CONTINUATION, " ");
@@ -83,6 +86,6 @@ function computeTokenDiff(oldStr, newStr) {
 
 export {
   RE_PARA_BREAK, RE_NEWLINE_WS, RE_LIST_OR_HEADING, RE_HEADING_LINE,
-  RE_BOX_RULES, RE_TRAILING_WS, RE_CONTINUATION, RE_MULTI_SPACE, RE_TOKENIZE,
+  RE_GUTTER, RE_BOX_RULES, RE_TRAILING_WS, RE_CONTINUATION, RE_MULTI_SPACE, RE_TOKENIZE,
   unwrapParagraphs, cleanText, computeDiff, computeTokenDiff,
 };

@@ -9,6 +9,7 @@ const require = createRequire(import.meta.url);
 const { version: VERSION } = require("../package.json");
 
 const TRANSFORM_MAP = {
+  "strip-gutters": "stripGutters",
   "strip-rules": "stripRules",
   "strip-trailing": "stripTrailing",
   "join-continuations": "joinContinuations",

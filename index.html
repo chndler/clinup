@@ -552,6 +552,16 @@
     <div class="options">
     <div class="option-card">
       <label class="option-label">
+        <input type="checkbox" id="opt-strip-gutters" checked><span class="toggle-icon" aria-hidden="true">✓</span> strip-gutters
+      </label>
+      <div class="option-example">
+        <code>▎ text</code>
+        <span class="arrow">&rarr;</span>
+        <code>text</code>
+      </div>
+    </div>
+    <div class="option-card">
+      <label class="option-label">
         <input type="checkbox" id="opt-strip-rules" checked><span class="toggle-icon" aria-hidden="true">✓</span> strip-rules
       </label>
       <div class="option-example">
@@ -679,6 +689,7 @@
   const output      = document.getElementById("output");
   const copyBtn     = document.getElementById("copy-btn");
   const optStripTrailing = document.getElementById("opt-strip-trailing");
+  const optGutters       = document.getElementById("opt-strip-gutters");
   const optRules         = document.getElementById("opt-strip-rules");
   const optJoin     = document.getElementById("opt-join");
   const optUnwrap   = document.getElementById("opt-unwrap");
@@ -709,6 +720,7 @@
   const RE_NEWLINE_WS = /\n\s*/g;
   const RE_LIST_OR_HEADING = /^[-*+•⏺★✦◆▶►■●⚡⚠⚙➤→✓✗] |^\d+[.)] |^#{1,6} /;
   const RE_HEADING_LINE = /^\s*(?:(?:[⏺•]\s*)?#{1,6} |[★✦◆▶►■●⚡⚠⚙➤→✓✗]\s)/;
+  const RE_GUTTER = /^\s*[\u2502\u2503\u2551\u2588-\u258F]\s?/gm;
   const RE_BOX_RULES = /(?:^\s*[\u2500-\u257F]{3,}\s*$\n?|\s+[\u2500-\u257F]{3,}\s*$)/gm;
   const RE_TRAILING_WS = /[^\S\n]+$/gm;
   const RE_CONTINUATION = /\\\s*\n\s*/g;
@@ -731,6 +743,7 @@
 
   function cleanText(text, options = {}) {
     const {
+      stripGutters = true,
       stripRules = true,
       stripTrailing = true,
       joinContinuations = true,
@@ -740,6 +753,7 @@
     } = options;
 
     let result = text;
+    if (stripGutters)      result = result.replace(RE_GUTTER, "");
     if (stripRules)        result = result.replace(RE_BOX_RULES, "");
     if (stripTrailing)     result = result.replace(RE_TRAILING_WS, "");
     if (joinContinuations) result = result.replace(RE_CONTINUATION, " ");
@@ -790,6 +804,7 @@
 
   function clean(text) {
     return cleanText(text, {
+      stripGutters: optGutters.checked,
       stripRules: optRules.checked,
       stripTrailing: optStripTrailing.checked,
       joinContinuations: optJoin.checked,
@@ -1138,7 +1153,7 @@
     if (lastClean) syncOutputGutterHeights();
   }).observe(outputContent);
 
-  [optStripTrailing, optRules, optJoin, optUnwrap, optCollapse, optTrim].forEach(cb => cb.addEventListener("change", () => {
+  [optGutters, optStripTrailing, optRules, optJoin, optUnwrap, optCollapse, optTrim].forEach(cb => cb.addEventListener("change", () => {
     syncCards();
     clearTimeout(debounceTimer);
     update();

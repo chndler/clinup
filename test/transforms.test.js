@@ -49,8 +49,27 @@ Build completed with 3 optimizations applied:
 describe("cleanText passthrough", () => {
   it("returns input unchanged when all options are disabled", () => {
     const input = "  hello   world  \n  line two  \n";
-    const opts = { stripRules: false, stripTrailing: false, joinContinuations: false, unwrapParagraphs: false, collapseSpaces: false, trimOuter: false };
+    const opts = { stripGutters: false, stripRules: false, stripTrailing: false, joinContinuations: false, unwrapParagraphs: false, collapseSpaces: false, trimOuter: false };
     assert.equal(cleanText(input, opts), input);
+  });
+});
+
+describe("strip-gutters", () => {
+  const only = { stripRules: false, stripTrailing: false, joinContinuations: false, unwrapParagraphs: false, collapseSpaces: false, trimOuter: false };
+
+  it("strips ▎ gutter markers from each line", () => {
+    const input = "  \u258E hello\n  \u258E world";
+    assert.equal(cleanText(input, only), "hello\nworld");
+  });
+
+  it("strips │ box-drawing vertical gutters", () => {
+    const input = "\u2502 line one\n\u2502 line two";
+    assert.equal(cleanText(input, only), "line one\nline two");
+  });
+
+  it("preserves content when disabled", () => {
+    const input = "  \u258E hello";
+    assert.equal(cleanText(input, { ...only, stripGutters: false }), "  \u258E hello");
   });
 });
 

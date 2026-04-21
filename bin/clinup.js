@@ -9,13 +9,10 @@ const require = createRequire(import.meta.url);
 const { version: VERSION } = require("../package.json");
 
 const TRANSFORM_MAP = {
-  "strip-gutters": "stripGutters",
-  "strip-rules": "stripRules",
-  "strip-trailing": "stripTrailing",
+  "strip-decorations": "stripDecorations",
   "join-continuations": "joinContinuations",
-  "unwrap-paragraphs": "unwrapParagraphs",
-  "collapse-spaces": "collapseSpaces",
-  "trim-outer": "trimOuter",
+  "join-lines": "unwrapParagraphs",
+  "normalize-whitespace": "normalizeWhitespace",
 };
 
 export function parseArgs(argv) {
@@ -85,8 +82,8 @@ Clipboard:
 
 Transforms (all enabled by default):
   -d, --disable <list>   Comma-separated transforms to disable:
-                         strip-rules, strip-trailing, join-continuations,
-                         unwrap-paragraphs, collapse-spaces, trim-outer
+                         strip-decorations, join-continuations,
+                         join-lines, normalize-whitespace
 
 Other:
   -h, --help             Show this help

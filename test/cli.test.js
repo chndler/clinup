@@ -37,13 +37,13 @@ describe("parseArgs", () => {
   });
 
   it("parses --disable with comma-separated values", () => {
-    const opts = parseArgs(["--disable", "strip-rules,unwrap-paragraphs"]);
-    assert.deepEqual(opts.disable, ["strip-rules", "unwrap-paragraphs"]);
+    const opts = parseArgs(["--disable", "strip-decorations,join-lines"]);
+    assert.deepEqual(opts.disable, ["strip-decorations", "join-lines"]);
   });
 
   it("parses -d shorthand", () => {
-    const opts = parseArgs(["-d", "trim-outer"]);
-    assert.deepEqual(opts.disable, ["trim-outer"]);
+    const opts = parseArgs(["-d", "normalize-whitespace"]);
+    assert.deepEqual(opts.disable, ["normalize-whitespace"]);
   });
 
   it("parses --clipboard flag", () => {
@@ -139,7 +139,7 @@ describe("CLI integration", () => {
   });
 
   it("respects --disable flag", () => {
-    const result = execFileSync("node", [cli, "--disable", "collapse-spaces"], {
+    const result = execFileSync("node", [cli, "--disable", "normalize-whitespace"], {
       input: "hello    world",
       encoding: "utf-8",
     });

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>clinup</title>
 <meta name="description" content="Clean messy terminal and CLI text output. Strips box-drawing rules, joins wrapped lines, collapses whitespace, and more.">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cstyle%3E.f%7Bfill:%23e8e8e8%7D%40media(prefers-color-scheme:light)%7B.f%7Bfill:%231a1a1a%7D%7D%3C/style%3E%3Cpath class='f' d='M1 9 L8.5 18 L1 27 L4.5 27 L12 18 L4.5 9Z'/%3E%3Crect class='f' x='13' y='24.5' width='10' height='2.5' rx='.5'/%3E%3Cpath class='f' d='M19.25 9 Q19.91 13.84 24.75 14.5 Q19.91 15.16 19.25 20 Q18.59 15.16 13.75 14.5 Q18.59 13.84 19.25 9Z'/%3E%3Cpath class='f' d='M27 19.5 Q27.36 22.14 30 22.5 Q27.36 22.86 27 25.5 Q26.64 22.86 24 22.5 Q26.64 22.14 27 19.5Z'/%3E%3Cpath class='f' d='M25 3 Q25.3 5.2 27.5 5.5 Q25.3 5.8 25 8 Q24.7 5.8 22.5 5.5 Q24.7 5.2 25 3Z'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cstyle%3E.f%7Bfill:%23e8e8e8%7D%40media(prefers-color-scheme:light)%7B.f%7Bfill:%231a1a1a%7D%7D%3C/style%3E%3Cdefs%3E%3Cmask id='m'%3E%3Crect width='32' height='32' fill='white'/%3E%3Cellipse cx='16' cy='28.5' rx='0.9' ry='1.3' fill='black'/%3E%3C/mask%3E%3C/defs%3E%3Cpath class='f' d='M4 1 L10 6 L4 11 L6.5 11 L12.5 6 L6.5 1Z'/%3E%3Crect class='f' x='14' y='9' width='8' height='2' rx='.5'/%3E%3Cg mask='url(%23m)'%3E%3Crect class='f' x='3' y='15' width='26' height='2' rx='.5'/%3E%3Crect class='f' x='4' y='17' width='24' height='1'/%3E%3Cpath class='f' d='M7 18 L13.5 23 L13 30 Q13 31 14 31 L18 31 Q19 31 19 30 L18.5 23 L25 18Z'/%3E%3C/g%3E%3C/svg%3E">
 <style>
   :root {
     color-scheme: dark;
@@ -24,6 +24,7 @@
     --text-faint: #7d8590;
     --accent: #58a6ff;
     --success: #3fb950;
+    --error: #f85149;
     --selection-bg: rgba(56, 139, 253, 0.3);
     --line-hover-bg: rgba(136, 198, 255, 0.06);
     --accent-tint: rgba(255, 255, 255, 0.04);
@@ -49,7 +50,7 @@
     --radius-md: 3px;
 
     /* layout */
-    --max-width: 800px;
+    --max-width: 1100px;
 
     /* diff */
     --diff-removed-bg: rgba(248, 81, 73, 0.10);
@@ -79,6 +80,7 @@
     --text-faint: #424a54;
     --accent: #0969da;
     --success: #1a7f37;
+    --error: #cf222e;
     --selection-bg: rgba(9, 105, 218, 0.2);
     --line-hover-bg: rgba(208, 215, 222, 0.32);
     --accent-tint: rgba(0, 0, 0, 0.03);
@@ -181,6 +183,7 @@
     color: var(--text-faint);
     text-transform: uppercase;
     letter-spacing: 0.08em;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .input-box, .output-box {
@@ -357,6 +360,8 @@
     max-width: 100%;
   }
 
+  .option-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+
 
   @media (max-width: 540px) {
     .options { grid-template-columns: 1fr; }
@@ -387,6 +392,7 @@
     font-size: var(--font-size-md);
     color: var(--text-secondary);
     user-select: none;
+    cursor: pointer;
   }
 
   .option-label input[type="checkbox"] {
@@ -410,7 +416,6 @@
     align-items: baseline;
     gap: var(--space-sm);
     margin-top: var(--space-xs);
-    padding-left: 1.1rem;
     font-size: var(--font-size-xs);
     line-height: 1.4;
     color: var(--text-faint);
@@ -428,10 +433,43 @@
     color: var(--text-muted);
   }
 
-  .option-example .arrow {
-    color: var(--success);
+  .arrow {
+    color: var(--text-faint);
     flex-shrink: 0;
   }
+
+  .custom-input-fields {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-top: var(--space-xs);
+    font-size: var(--font-size-xs);
+  }
+  .custom-input {
+    flex: 1;
+    min-width: 0;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: var(--space-xs) var(--space-sm);
+    font-family: inherit;
+    font-size: var(--font-size-xs);
+    color: var(--text-primary);
+  }
+  .custom-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .custom-input::placeholder { color: var(--text-faint); opacity: 0.5; font-style: italic; }
+  .custom-hint {
+    font-size: var(--font-size-xs);
+    color: var(--text-faint);
+    font-style: italic;
+    margin-top: var(--space-xs);
+    padding-left: var(--space-sm);
+    display: none;
+  }
+  .custom-input-card.disabled .custom-input-fields { opacity: 0.4; pointer-events: none; }
 
   .ws { color: var(--text-muted); opacity: 0.5; }
 
@@ -551,32 +589,12 @@
     <div class="options">
     <div class="option-card">
       <label class="option-label">
-        <input type="checkbox" id="opt-strip-gutters" checked><span class="toggle-icon" aria-hidden="true">✓</span> strip-gutters
+        <input type="checkbox" id="opt-strip-decorations" checked><span class="toggle-icon" aria-hidden="true">✓</span> strip-decorations
       </label>
       <div class="option-example">
-        <code>▎ text</code>
+        <code>▎ text ────────</code>
         <span class="arrow">&rarr;</span>
         <code>text</code>
-      </div>
-    </div>
-    <div class="option-card">
-      <label class="option-label">
-        <input type="checkbox" id="opt-strip-rules" checked><span class="toggle-icon" aria-hidden="true">✓</span> strip-rules
-      </label>
-      <div class="option-example">
-        <code>────────────</code>
-        <span class="arrow">&rarr;</span>
-        <code><em>(removed)</em></code>
-      </div>
-    </div>
-    <div class="option-card">
-      <label class="option-label">
-        <input type="checkbox" id="opt-strip-trailing" checked><span class="toggle-icon" aria-hidden="true">✓</span> strip-trailing
-      </label>
-      <div class="option-example">
-        <code>hello&nbsp; &nbsp; &nbsp;\n</code>
-        <span class="arrow">&rarr;</span>
-        <code>hello\n</code>
       </div>
     </div>
     <div class="option-card">
@@ -591,7 +609,7 @@
     </div>
     <div class="option-card">
       <label class="option-label">
-        <input type="checkbox" id="opt-unwrap" checked><span class="toggle-icon" aria-hidden="true">✓</span> unwrap-paragraphs
+        <input type="checkbox" id="opt-unwrap" checked><span class="toggle-icon" aria-hidden="true">✓</span> join-lines
       </label>
       <div class="option-example">
         <code>line one\n  continues here</code>
@@ -601,23 +619,24 @@
     </div>
     <div class="option-card">
       <label class="option-label">
-        <input type="checkbox" id="opt-collapse" checked><span class="toggle-icon" aria-hidden="true">✓</span> collapse-spaces
+        <input type="checkbox" id="opt-normalize-ws" checked><span class="toggle-icon" aria-hidden="true">✓</span> normalize-whitespace
       </label>
       <div class="option-example">
-        <code>too&nbsp; &nbsp;many&nbsp; &nbsp;spaces</code>
+        <code>&nbsp; too&nbsp; &nbsp;many&nbsp; &nbsp;</code>
         <span class="arrow">&rarr;</span>
-        <code>too many spaces</code>
+        <code>too many</code>
       </div>
     </div>
-    <div class="option-card">
+<div class="option-card custom-input-card" id="replace-card">
       <label class="option-label">
-        <input type="checkbox" id="opt-trim" checked><span class="toggle-icon" aria-hidden="true">✓</span> trim-outer
+        <input type="checkbox" id="opt-replace"><span class="toggle-icon" aria-hidden="true">✓</span> replace
       </label>
-      <div class="option-example">
-        <code>&nbsp; &nbsp;hello world&nbsp; &nbsp;</code>
+      <div class="custom-input-fields">
+        <input type="text" id="replace-find" class="custom-input" placeholder="e.g. foo" spellcheck="false">
         <span class="arrow">&rarr;</span>
-        <code>hello world</code>
+        <input type="text" id="replace-with" class="custom-input" placeholder="e.g. bar" spellcheck="false">
       </div>
+      <div id="replace-hint" class="custom-hint"></div>
     </div>
     </div>
     </div>
@@ -669,6 +688,7 @@
   function syncThemeSwitch() {
     const current = document.documentElement.dataset.theme;
     themeSwitch.setAttribute("aria-checked", current === THEME_DARK);
+    themeSwitch.setAttribute("aria-label", current === THEME_DARK ? "Switch to light mode" : "Switch to dark mode");
     themeOptionEls.forEach(el => {
       el.classList.toggle("active", el.dataset.theme === current);
     });
@@ -687,13 +707,14 @@
   const input       = document.getElementById("input");
   const output      = document.getElementById("output");
   const copyBtn     = document.getElementById("copy-btn");
-  const optStripTrailing = document.getElementById("opt-strip-trailing");
-  const optGutters       = document.getElementById("opt-strip-gutters");
-  const optRules         = document.getElementById("opt-strip-rules");
-  const optJoin     = document.getElementById("opt-join");
-  const optUnwrap   = document.getElementById("opt-unwrap");
-  const optCollapse = document.getElementById("opt-collapse");
-  const optTrim     = document.getElementById("opt-trim");
+  const optDecorations = document.getElementById("opt-strip-decorations");
+  const optJoin        = document.getElementById("opt-join");
+  const optUnwrap      = document.getElementById("opt-unwrap");
+  const optNormalizeWs = document.getElementById("opt-normalize-ws");
+  const optReplace       = document.getElementById("opt-replace");
+  const replaceFind      = document.getElementById("replace-find");
+  const replaceWith      = document.getElementById("replace-with");
+  const replaceHint      = document.getElementById("replace-hint");
   const toggleLineNums   = document.getElementById("toggle-line-nums");
   const toggleWhitespace = document.getElementById("toggle-whitespace");
   const toggleWrap       = document.getElementById("toggle-wrap");
@@ -721,44 +742,57 @@
   const RE_HEADING_LINE = /^\s*(?:(?:[⏺•]\s*)?#{1,6} |[★✦◆▶►■●⚡⚠⚙➤→✓✗]\s)/;
   const RE_GUTTER = /^\s*[\u2502\u2503\u2551\u2588-\u258F]\s?/gm;
   const RE_BOX_RULES = /(?:^\s*[\u2500-\u257F]{3,}\s*$\n?|\s+[\u2500-\u257F]{3,}\s*$)/gm;
+  const RE_LEADING_WS = /^[^\S\n]+/gm;
   const RE_TRAILING_WS = /[^\S\n]+$/gm;
   const RE_CONTINUATION = /\\\s*\n\s*/g;
-  const RE_MULTI_SPACE = / {2,}/g;
+  const RE_MULTI_SPACE = /(?<=\S) {2,}/g;
   const RE_TOKENIZE = /(\S+|\s+)/g;
+
+  function dedent(text) {
+    const lines = text.split("\n");
+    const listIndents = lines
+      .filter(l => /^\s+[-*+•⏺★✦◆▶►■●⚡⚠⚙➤→✓✗]\s/.test(l) || /^\s+\d+[.)]\s/.test(l))
+      .map(l => l.match(/^(\s*)/)[1].length);
+    const min = listIndents.length ? Math.min(...listIndents) : 0;
+    if (min === 0) return text;
+    return lines.map(l => l.match(/^(\s*)/)[1].length >= min ? l.slice(min) : l).join("\n");
+  }
 
   function unwrapParagraphs(text, trim) {
     return text.split(RE_PARA_BREAK).map(para => {
       const unwrapped = para.replace(RE_NEWLINE_WS, (match, offset) => {
         const rest = para.slice(offset + match.length);
-        if (RE_LIST_OR_HEADING.test(rest)) return "\n";
+        if (RE_LIST_OR_HEADING.test(rest)) return match;
         const before = para.slice(0, offset);
         const lastLine = before.substring(before.lastIndexOf("\n") + 1);
         if (RE_HEADING_LINE.test(lastLine)) return "\n";
         return " ";
       });
-      return trim ? unwrapped.trim() : unwrapped;
+      const dedented = dedent(unwrapped);
+      return trim ? dedented.trim() : dedented;
     }).join("\n\n");
   }
 
   function cleanText(text, options = {}) {
     const {
-      stripGutters = true,
-      stripRules = true,
-      stripTrailing = true,
+      stripDecorations = true,
       joinContinuations = true,
       unwrapParagraphs: doUnwrap = true,
-      collapseSpaces = true,
-      trimOuter = true,
+      normalizeWhitespace = true,
     } = options;
 
     let result = text;
-    if (stripGutters)      result = result.replace(RE_GUTTER, "");
-    if (stripRules)        result = result.replace(RE_BOX_RULES, "");
-    if (stripTrailing)     result = result.replace(RE_TRAILING_WS, "");
+    if (stripDecorations) {
+      result = result.replace(RE_GUTTER, "");
+      result = result.replace(RE_BOX_RULES, "");
+    }
     if (joinContinuations) result = result.replace(RE_CONTINUATION, " ");
-    if (doUnwrap)          result = unwrapParagraphs(result, trimOuter);
-    if (collapseSpaces)    result = result.replace(RE_MULTI_SPACE, " ");
-    if (trimOuter)         result = result.trim();
+    if (doUnwrap)          result = unwrapParagraphs(result, normalizeWhitespace);
+    if (normalizeWhitespace) {
+      result = result.replace(RE_TRAILING_WS, "");
+      result = result.replace(RE_MULTI_SPACE, " ");
+      result = result.trim();
+    }
     return result;
   }
 
@@ -802,20 +836,24 @@
   }
 
   function clean(text) {
-    return cleanText(text, {
-      stripGutters: optGutters.checked,
-      stripRules: optRules.checked,
-      stripTrailing: optStripTrailing.checked,
+    let result = cleanText(text, {
+      stripDecorations: optDecorations.checked,
       joinContinuations: optJoin.checked,
       unwrapParagraphs: optUnwrap.checked,
-      collapseSpaces: optCollapse.checked,
-      trimOuter: optTrim.checked,
+      normalizeWhitespace: optNormalizeWs.checked,
     });
+    if (optReplace.checked && replaceFind.value) {
+      result = result.split(replaceFind.value).join(replaceWith.value);
+    }
+    return result;
   }
 
   const outputGutter  = document.getElementById("output-gutter");
   const outputContent = document.getElementById("output-content");
   const placeholder   = outputContent.querySelector(".output-placeholder");
+  const emptyResult   = document.createElement("span");
+  emptyResult.className = "output-placeholder";
+  emptyResult.textContent = "No output — transforms removed all content";
 
   const inputMirror = document.createElement("div");
   inputMirror.style.cssText = "position:fixed;left:-9999px;white-space:pre-wrap;overflow-wrap:break-word;box-sizing:border-box;";
@@ -975,7 +1013,9 @@
     if (cachedDiff && cachedDiff.raw === rawText && cachedDiff.clean === cleanedText) {
       return cachedDiff;
     }
-    const entries = computeDiff(rawText.split("\n"), cleanedText.split("\n"));
+    const oldLines = rawText.split("\n");
+    const newLines = cleanedText ? cleanedText.split("\n") : [];
+    const entries = computeDiff(oldLines, newLines);
 
     // Pair consecutive removed+added lines and compute char-level diffs
     let idx = 0;
@@ -1047,6 +1087,11 @@
       txt.className = "line-text";
       if (entry.charDiff) {
         renderCharDiffContent(txt, entry.charDiff, entry.type, showWs);
+      } else if (entry.type === "removed" || entry.type === "added") {
+        const highlight = document.createElement("span");
+        highlight.className = entry.type === "removed" ? "diff-char-del" : "diff-char-ins";
+        renderLineContent(highlight, entry.text, showWs);
+        txt.appendChild(highlight);
       } else {
         renderLineContent(txt, entry.text, showWs);
       }
@@ -1078,14 +1123,19 @@
   }
 
   function renderOutput() {
-    if (!lastClean) return;
     const diffActive = isToggleActive(toggleDiff);
     output.classList.toggle("diff-mode", diffActive);
+    output.classList.toggle("empty", !lastClean && !diffActive);
     if (diffActive) {
       renderDiffLines(lastRaw, lastClean);
       diffSummary.style.display = "";
-    } else {
+    } else if (lastClean) {
       renderLines(lastClean);
+      diffSummary.style.display = "none";
+    } else {
+      outputGutter.replaceChildren();
+      const msg = lastRaw ? emptyResult : placeholder;
+      outputContent.replaceChildren(msg);
       diffSummary.style.display = "none";
     }
   }
@@ -1093,7 +1143,7 @@
   function update() {
     const raw = input.value;
     if (!/\S/.test(raw)) {
-      if (lastClean) {
+      if (lastRaw) {
         outputGutter.replaceChildren();
         outputContent.replaceChildren(placeholder);
         output.classList.add("empty");
@@ -1106,11 +1156,14 @@
       }
       return;
     }
-    output.classList.remove("empty");
+    const prevRaw = lastRaw;
     lastRaw = raw;
     const cleaned = clean(raw);
-    if (cleaned === lastClean) return;
+    const diffActive = isToggleActive(toggleDiff);
+    if (cleaned === lastClean && !(diffActive && raw !== prevRaw)) return;
     lastClean = cleaned;
+    cachedDiff = null;
+    output.classList.toggle("empty", !cleaned && !diffActive);
     renderOutput();
   }
 
@@ -1130,7 +1183,7 @@
 
   cardPairs.forEach(([card, cb]) => {
     card.addEventListener("click", (e) => {
-      if (e.target.closest("label")) return;
+      if (e.target.closest("label") || e.target.closest("input[type=text]")) return;
       cb.checked = !cb.checked;
       cb.dispatchEvent(new Event("change"));
     });
@@ -1152,10 +1205,24 @@
     if (lastClean) syncOutputGutterHeights();
   }).observe(outputContent);
 
-  [optGutters, optStripTrailing, optRules, optJoin, optUnwrap, optCollapse, optTrim].forEach(cb => cb.addEventListener("change", () => {
+  [optDecorations, optJoin, optUnwrap, optNormalizeWs, optReplace].forEach(cb => cb.addEventListener("change", () => {
     syncCards();
     clearTimeout(debounceTimer);
     update();
+  }));
+
+  function updateReplaceHint() {
+    if (replaceFind.value && !replaceWith.value) {
+      replaceHint.textContent = `no replacement provided — will remove matches`;
+      replaceHint.style.display = "block";
+    } else {
+      replaceHint.style.display = "none";
+    }
+  }
+
+  [replaceFind, replaceWith].forEach(el => el.addEventListener("input", () => {
+    updateReplaceHint();
+    if (optReplace.checked) { clearTimeout(debounceTimer); update(); }
   }));
 
   function isToggleActive(btn) {
@@ -1189,7 +1256,7 @@
   [toggleWhitespace, toggleDiff].forEach(btn => {
     btn.addEventListener("click", () => {
       toggleButton(btn);
-      if (lastClean) renderOutput();
+      if (lastRaw) renderOutput();
     });
   });
 

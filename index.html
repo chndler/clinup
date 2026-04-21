@@ -750,10 +750,12 @@
 
   function dedent(text) {
     const lines = text.split("\n");
-    const indents = lines.filter(l => l.trim()).map(l => l.match(/^(\s*)/)[1].length);
-    const min = Math.min(...indents);
+    const listIndents = lines
+      .filter(l => /^\s+[-*+•⏺★✦◆▶►■●⚡⚠⚙➤→✓✗]\s/.test(l) || /^\s+\d+[.)]\s/.test(l))
+      .map(l => l.match(/^(\s*)/)[1].length);
+    const min = listIndents.length ? Math.min(...listIndents) : 0;
     if (min === 0) return text;
-    return lines.map(l => l.slice(min)).join("\n");
+    return lines.map(l => l.match(/^(\s*)/)[1].length >= min ? l.slice(min) : l).join("\n");
   }
 
   function unwrapParagraphs(text, trim) {

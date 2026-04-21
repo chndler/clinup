@@ -162,6 +162,18 @@ describe("unwrap-paragraphs", () => {
     const result = unwrapParagraphs(input, true);
     assert.equal(result, "- top level\n  - sub level\n      - deep level\n- another top");
   });
+
+  it("dedents bullets consistently when header has no indent", () => {
+    const input = "Title:\n  - item one\n  - item two";
+    const result = unwrapParagraphs(input, true);
+    assert.equal(result, "Title:\n- item one\n- item two");
+  });
+
+  it("dedents bullets consistently across paragraphs", () => {
+    const input = "Section A:\n  - first\n  - second\n\n  Section B:\n  - third\n  - fourth";
+    const result = unwrapParagraphs(input, true);
+    assert.equal(result, "Section A:\n- first\n- second\n\nSection B:\n- third\n- fourth");
+  });
 });
 
 describe("normalize-whitespace", () => {

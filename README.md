@@ -81,7 +81,7 @@ clinup                                    # clipboard → stdout + clipboard
 clinup -i messy.txt                       # file → stdout
 clinup -i messy.txt -o clean.txt          # file → file
 cat messy.txt | clinup                    # stdin → stdout
-clinup --disable strip-rules,trim-outer   # skip specific transforms
+clinup --disable join-lines                # skip specific transforms
 clinup --no-clipboard                     # don't update clipboard
 clinup --help                             # show all options
 ```

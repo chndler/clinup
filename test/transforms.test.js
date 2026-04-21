@@ -4,6 +4,8 @@ import {
   cleanText, unwrapParagraphs, computeDiff, computeTokenDiff,
 } from "../src/transforms.js";
 
+const OFF = { stripDecorations: false, joinContinuations: false, unwrapParagraphs: false, normalizeWhitespace: false };
+
 describe("cleanText (full pipeline)", () => {
   it("produces the expected output from the README example", () => {
     const input = `
@@ -49,75 +51,47 @@ Build completed with 3 optimizations applied:
 describe("cleanText passthrough", () => {
   it("returns input unchanged when all options are disabled", () => {
     const input = "  hello   world  \n  line two  \n";
-    const opts = { stripGutters: false, stripRules: false, stripTrailing: false, joinContinuations: false, unwrapParagraphs: false, collapseSpaces: false, trimOuter: false };
-    assert.equal(cleanText(input, opts), input);
+    assert.equal(cleanText(input, OFF), input);
   });
 });
 
-describe("strip-gutters", () => {
-  const only = { stripRules: false, stripTrailing: false, joinContinuations: false, unwrapParagraphs: false, collapseSpaces: false, trimOuter: false };
-
-  it("strips ▎ gutter markers from each line", () => {
+describe("strip-decorations", () => {
+  it("strips \u258E gutter markers from each line", () => {
     const input = "  \u258E hello\n  \u258E world";
-    assert.equal(cleanText(input, only), "hello\nworld");
+    assert.equal(cleanText(input, { ...OFF, stripDecorations: true }), "hello\nworld");
   });
 
-  it("strips │ box-drawing vertical gutters", () => {
+  it("strips \u2502 box-drawing vertical gutters", () => {
     const input = "\u2502 line one\n\u2502 line two";
-    assert.equal(cleanText(input, only), "line one\nline two");
+    assert.equal(cleanText(input, { ...OFF, stripDecorations: true }), "line one\nline two");
   });
 
-  it("preserves content when disabled", () => {
-    const input = "  \u258E hello";
-    assert.equal(cleanText(input, { ...only, stripGutters: false }), "  \u258E hello");
-  });
-});
-
-describe("strip-rules", () => {
   it("removes lines made entirely of box-drawing characters", () => {
     const input = "hello\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nworld";
-    const result = cleanText(input, { stripTrailing: false, joinContinuations: false, unwrapParagraphs: false, collapseSpaces: false, trimOuter: false });
-    assert.equal(result, "hello\nworld");
+    assert.equal(cleanText(input, { ...OFF, stripDecorations: true }), "hello\nworld");
   });
 
   it("strips trailing rules from mixed lines", () => {
     const input = "Title \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500";
-    const result = cleanText(input, { stripTrailing: false, joinContinuations: false, unwrapParagraphs: false, collapseSpaces: false, trimOuter: false });
-    assert.equal(result, "Title");
+    assert.equal(cleanText(input, { ...OFF, stripDecorations: true }), "Title");
   });
 
   it("handles box-drawing chars at range boundaries (U+2500, U+257F)", () => {
     const input = "hello\n\u2500\u2500\u2500\nworld\n\u257F\u257F\u257F\nmiddle";
-    const result = cleanText(input, { stripTrailing: false, joinContinuations: false, unwrapParagraphs: false, collapseSpaces: false, trimOuter: false });
-    assert.equal(result, "hello\nworld\nmiddle");
+    assert.equal(cleanText(input, { ...OFF, stripDecorations: true }), "hello\nworld\nmiddle");
   });
 
   it("preserves content when disabled", () => {
-    const input = "Title \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500";
-    const result = cleanText(input, { stripRules: false, stripTrailing: false, joinContinuations: false, unwrapParagraphs: false, collapseSpaces: false, trimOuter: false });
-    assert.equal(result, input);
-  });
-});
-
-describe("strip-trailing", () => {
-  it("removes trailing spaces", () => {
-    const input = "hello   \nworld  ";
-    const result = cleanText(input, { stripRules: false, joinContinuations: false, unwrapParagraphs: false, collapseSpaces: false, trimOuter: false });
-    assert.equal(result, "hello\nworld");
-  });
-
-  it("preserves leading spaces", () => {
-    const input = "  indented";
-    const result = cleanText(input, { stripRules: false, joinContinuations: false, unwrapParagraphs: false, collapseSpaces: false, trimOuter: false });
-    assert.equal(result, "  indented");
+    const input = "  \u258E hello";
+    assert.equal(cleanText(input, OFF), "  \u258E hello");
   });
 });
 
 describe("join-continuations", () => {
   it("joins backslash-wrapped lines", () => {
     const input = "go build \\\n  -ldflags \\\n  \"-s -w\"";
-    const result = cleanText(input, { stripRules: false, stripTrailing: false, unwrapParagraphs: false, collapseSpaces: false, trimOuter: false });
-    // double spaces are expected here — collapse-spaces handles them downstream
+    const result = cleanText(input, { ...OFF, joinContinuations: true });
+    // double spaces are expected here — normalize-whitespace handles them downstream
     assert.equal(result, "go build  -ldflags  \"-s -w\"");
   });
 });
@@ -182,41 +156,63 @@ describe("unwrap-paragraphs", () => {
     const input = "\u2022 ## Sub-heading\nsome text";
     assert.equal(unwrapParagraphs(input, true), "\u2022 ## Sub-heading\nsome text");
   });
-});
 
-describe("transform interactions", () => {
-  it("strip-rules + unwrap: heading line preserved after trailing rule is stripped", () => {
-    const input = "\u2605 Title \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nBody text here";
-    const result = cleanText(input, { stripTrailing: false, joinContinuations: false, collapseSpaces: false, trimOuter: false });
-    assert.equal(result, "\u2605 Title\nBody text here");
-  });
-
-  it("join-continuations + collapse-spaces: double spaces from joins get collapsed", () => {
-    const input = "cmd \\\n  --flag \\\n  --other";
-    const result = cleanText(input, { stripRules: false, stripTrailing: false, unwrapParagraphs: false, trimOuter: false });
-    assert.equal(result, "cmd --flag --other");
+  it("preserves nested bullet indentation", () => {
+    const input = "  - top level\n    - sub level\n        - deep level\n  - another top";
+    const result = unwrapParagraphs(input, true);
+    assert.equal(result, "- top level\n  - sub level\n      - deep level\n- another top");
   });
 });
 
-describe("collapse-spaces", () => {
-  it("collapses multiple spaces to one", () => {
+describe("normalize-whitespace", () => {
+  it("strips trailing whitespace from each line", () => {
+    const input = "hello   \nworld  ";
+    assert.equal(cleanText(input, { ...OFF, normalizeWhitespace: true }), "hello\nworld");
+  });
+
+  it("collapses multiple interior spaces to one", () => {
     const input = "hello    world   foo";
-    const result = cleanText(input, { stripRules: false, stripTrailing: false, joinContinuations: false, unwrapParagraphs: false, trimOuter: false });
-    assert.equal(result, "hello world foo");
+    assert.equal(cleanText(input, { ...OFF, normalizeWhitespace: true }), "hello world foo");
+  });
+
+  it("preserves leading indentation while collapsing interior spaces", () => {
+    const input = "top\n    hello    world";
+    assert.equal(cleanText(input, { ...OFF, normalizeWhitespace: true }), "top\n    hello world");
+  });
+
+  it("trims leading and trailing whitespace from entire text", () => {
+    const input = "\n\n  hello world  \n\n";
+    assert.equal(cleanText(input, { ...OFF, normalizeWhitespace: true }), "hello world");
   });
 
   it("leaves single spaces alone", () => {
     const input = "hello world";
-    const result = cleanText(input, { stripRules: false, stripTrailing: false, joinContinuations: false, unwrapParagraphs: false, trimOuter: false });
-    assert.equal(result, "hello world");
+    assert.equal(cleanText(input, { ...OFF, normalizeWhitespace: true }), "hello world");
+  });
+
+  it("preserves content when disabled", () => {
+    const input = "  hello   world  ";
+    assert.equal(cleanText(input, OFF), input);
   });
 });
 
-describe("trim-outer", () => {
-  it("trims leading and trailing whitespace", () => {
-    const input = "\n\n  hello world  \n\n";
-    const result = cleanText(input, { stripRules: false, stripTrailing: false, joinContinuations: false, unwrapParagraphs: false, collapseSpaces: false });
-    assert.equal(result, "hello world");
+describe("transform interactions", () => {
+  it("strip-decorations + unwrap: heading line preserved after trailing rule is stripped", () => {
+    const input = "\u2605 Title \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nBody text here";
+    const result = cleanText(input, { ...OFF, stripDecorations: true, unwrapParagraphs: true });
+    assert.equal(result, "\u2605 Title\nBody text here");
+  });
+
+  it("join-continuations + normalize-whitespace: double spaces from joins get collapsed", () => {
+    const input = "cmd \\\n  --flag \\\n  --other";
+    const result = cleanText(input, { ...OFF, joinContinuations: true, normalizeWhitespace: true });
+    assert.equal(result, "cmd --flag --other");
+  });
+
+  it("strip-decorations removes gutters and rules together", () => {
+    const input = "\u258E hello\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\u258E world";
+    const result = cleanText(input, { ...OFF, stripDecorations: true });
+    assert.equal(result, "hello\nworld");
   });
 });
 

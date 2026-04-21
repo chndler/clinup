@@ -4,44 +4,55 @@ const RE_LIST_OR_HEADING = /^[-*+•⏺★✦◆▶►■●⚡⚠⚙➤→✓�
 const RE_HEADING_LINE = /^\s*(?:(?:[⏺•]\s*)?#{1,6} |[★✦◆▶►■●⚡⚠⚙➤→✓✗]\s)/;
 const RE_GUTTER = /^\s*[\u2502\u2503\u2551\u2588-\u258F]\s?/gm;
 const RE_BOX_RULES = /(?:^\s*[\u2500-\u257F]{3,}\s*$\n?|\s+[\u2500-\u257F]{3,}\s*$)/gm;
+const RE_LEADING_WS = /^[^\S\n]+/gm;
 const RE_TRAILING_WS = /[^\S\n]+$/gm;
 const RE_CONTINUATION = /\\\s*\n\s*/g;
-const RE_MULTI_SPACE = / {2,}/g;
+const RE_MULTI_SPACE = /(?<=\S) {2,}/g;
 const RE_TOKENIZE = /(\S+|\s+)/g;
+
+function dedent(text) {
+  const lines = text.split("\n");
+  const indents = lines.filter(l => l.trim()).map(l => l.match(/^(\s*)/)[1].length);
+  const min = Math.min(...indents);
+  if (min === 0) return text;
+  return lines.map(l => l.slice(min)).join("\n");
+}
 
 function unwrapParagraphs(text, trim) {
   return text.split(RE_PARA_BREAK).map(para => {
     const unwrapped = para.replace(RE_NEWLINE_WS, (match, offset) => {
       const rest = para.slice(offset + match.length);
-      if (RE_LIST_OR_HEADING.test(rest)) return "\n";
+      if (RE_LIST_OR_HEADING.test(rest)) return match;
       const before = para.slice(0, offset);
       const lastLine = before.substring(before.lastIndexOf("\n") + 1);
       if (RE_HEADING_LINE.test(lastLine)) return "\n";
       return " ";
     });
-    return trim ? unwrapped.trim() : unwrapped;
+    const dedented = dedent(unwrapped);
+    return trim ? dedented.trim() : dedented;
   }).join("\n\n");
 }
 
 function cleanText(text, options = {}) {
   const {
-    stripGutters = true,
-    stripRules = true,
-    stripTrailing = true,
+    stripDecorations = true,
     joinContinuations = true,
     unwrapParagraphs: doUnwrap = true,
-    collapseSpaces = true,
-    trimOuter = true,
+    normalizeWhitespace = true,
   } = options;
 
   let result = text;
-  if (stripGutters)      result = result.replace(RE_GUTTER, "");
-  if (stripRules)        result = result.replace(RE_BOX_RULES, "");
-  if (stripTrailing)     result = result.replace(RE_TRAILING_WS, "");
+  if (stripDecorations) {
+    result = result.replace(RE_GUTTER, "");
+    result = result.replace(RE_BOX_RULES, "");
+  }
   if (joinContinuations) result = result.replace(RE_CONTINUATION, " ");
-  if (doUnwrap)          result = unwrapParagraphs(result, trimOuter);
-  if (collapseSpaces)    result = result.replace(RE_MULTI_SPACE, " ");
-  if (trimOuter)         result = result.trim();
+  if (doUnwrap)          result = unwrapParagraphs(result, normalizeWhitespace);
+  if (normalizeWhitespace) {
+    result = result.replace(RE_TRAILING_WS, "");
+    result = result.replace(RE_MULTI_SPACE, " ");
+    result = result.trim();
+  }
   return result;
 }
 
@@ -86,6 +97,6 @@ function computeTokenDiff(oldStr, newStr) {
 
 export {
   RE_PARA_BREAK, RE_NEWLINE_WS, RE_LIST_OR_HEADING, RE_HEADING_LINE,
-  RE_GUTTER, RE_BOX_RULES, RE_TRAILING_WS, RE_CONTINUATION, RE_MULTI_SPACE, RE_TOKENIZE,
+  RE_GUTTER, RE_BOX_RULES, RE_LEADING_WS, RE_TRAILING_WS, RE_CONTINUATION, RE_MULTI_SPACE, RE_TOKENIZE,
   unwrapParagraphs, cleanText, computeDiff, computeTokenDiff,
 };

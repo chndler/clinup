@@ -3,7 +3,8 @@ const RE_NEWLINE_WS = /\n\s*/g;
 const RE_LIST_OR_HEADING = /^[-*+•⏺★✦◆▶►■●⚡⚠⚙➤→✓✗] |^\d+[.)] |^#{1,6} /;
 const RE_HEADING_LINE = /^\s*(?:(?:[⏺•]\s*)?#{1,6} |[★✦◆▶►■●⚡⚠⚙➤→✓✗]\s)/;
 const RE_GUTTER = /^\s*[\u2502\u2503\u2551\u2588-\u258F]\s?/gm;
-const RE_BOX_RULES = /(?:^\s*[\u2500-\u257F]{3,}\s*$\n?|\s+[\u2500-\u257F]{3,}\s*$)/gm;
+const RE_BOX_RULES = /(?:^[^\S\n]*[\u2500-\u257F]{3,}[^\S\n]*$\n?|[^\S\n]+[\u2500-\u257F]{3,}[^\S\n]*$)/gm;
+const RE_BOX_LINE = /^[\u2500-\u257F]/;
 const RE_LEADING_WS = /^[^\S\n]+/gm;
 const RE_TRAILING_WS = /[^\S\n]+$/gm;
 const RE_CONTINUATION = /\\\s*\n\s*/g;
@@ -24,10 +25,10 @@ function unwrapParagraphs(text, trim) {
   return text.split(RE_PARA_BREAK).map(para => {
     const unwrapped = para.replace(RE_NEWLINE_WS, (match, offset) => {
       const rest = para.slice(offset + match.length);
-      if (RE_LIST_OR_HEADING.test(rest)) return match;
+      if (RE_LIST_OR_HEADING.test(rest) || RE_BOX_LINE.test(rest)) return match;
       const before = para.slice(0, offset);
       const lastLine = before.substring(before.lastIndexOf("\n") + 1);
-      if (RE_HEADING_LINE.test(lastLine)) return "\n";
+      if (RE_HEADING_LINE.test(lastLine) || RE_BOX_LINE.test(lastLine)) return "\n";
       return " ";
     });
     const dedented = dedent(unwrapped);
@@ -99,6 +100,6 @@ function computeTokenDiff(oldStr, newStr) {
 
 export {
   RE_PARA_BREAK, RE_NEWLINE_WS, RE_LIST_OR_HEADING, RE_HEADING_LINE,
-  RE_GUTTER, RE_BOX_RULES, RE_LEADING_WS, RE_TRAILING_WS, RE_CONTINUATION, RE_MULTI_SPACE, RE_TOKENIZE,
+  RE_GUTTER, RE_BOX_RULES, RE_BOX_LINE, RE_LEADING_WS, RE_TRAILING_WS, RE_CONTINUATION, RE_MULTI_SPACE, RE_TOKENIZE,
   unwrapParagraphs, cleanText, computeDiff, computeTokenDiff,
 };
